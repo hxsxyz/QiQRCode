@@ -13,6 +13,11 @@
 		06516AE9219A6E4900F47CCF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 06516AE8219A6E4900F47CCF /* Assets.xcassets */; };
 		06516AEC219A6E4900F47CCF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 06516AEA219A6E4900F47CCF /* LaunchScreen.storyboard */; };
 		06516AEF219A6E4900F47CCF /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AEE219A6E4900F47CCF /* main.m */; };
+		06516AF7219A966F00F47CCF /* QiScanQRCodeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AF6219A966F00F47CCF /* QiScanQRCodeViewController.m */; };
+		06516AFA219A967900F47CCF /* QiQRCodeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AF9219A967900F47CCF /* QiQRCodeViewController.m */; };
+		06516AFD219A968400F47CCF /* QiBarCodeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AFC219A968400F47CCF /* QiBarCodeViewController.m */; };
+		06516B00219A999C00F47CCF /* QiScanQRCodeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AFF219A999C00F47CCF /* QiScanQRCodeManager.m */; };
+		06516B03219AAE0B00F47CCF /* QiScanQRCodeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516B02219AAE0B00F47CCF /* QiScanQRCodeView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +31,16 @@
 		06516AEB219A6E4900F47CCF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		06516AED219A6E4900F47CCF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		06516AEE219A6E4900F47CCF /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		06516AF5219A966F00F47CCF /* QiScanQRCodeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiScanQRCodeViewController.h; sourceTree = "<group>"; };
+		06516AF6219A966F00F47CCF /* QiScanQRCodeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiScanQRCodeViewController.m; sourceTree = "<group>"; };
+		06516AF8219A967900F47CCF /* QiQRCodeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiQRCodeViewController.h; sourceTree = "<group>"; };
+		06516AF9219A967900F47CCF /* QiQRCodeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiQRCodeViewController.m; sourceTree = "<group>"; };
+		06516AFB219A968400F47CCF /* QiBarCodeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiBarCodeViewController.h; sourceTree = "<group>"; };
+		06516AFC219A968400F47CCF /* QiBarCodeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiBarCodeViewController.m; sourceTree = "<group>"; };
+		06516AFE219A999C00F47CCF /* QiScanQRCodeManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiScanQRCodeManager.h; sourceTree = "<group>"; };
+		06516AFF219A999C00F47CCF /* QiScanQRCodeManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiScanQRCodeManager.m; sourceTree = "<group>"; };
+		06516B01219AAE0B00F47CCF /* QiScanQRCodeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiScanQRCodeView.h; sourceTree = "<group>"; };
+		06516B02219AAE0B00F47CCF /* QiScanQRCodeView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiScanQRCodeView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +77,16 @@
 				06516AE0219A6E4500F47CCF /* AppDelegate.m */,
 				06516AE2219A6E4500F47CCF /* ViewController.h */,
 				06516AE3219A6E4500F47CCF /* ViewController.m */,
+				06516AF5219A966F00F47CCF /* QiScanQRCodeViewController.h */,
+				06516AF6219A966F00F47CCF /* QiScanQRCodeViewController.m */,
+				06516AF8219A967900F47CCF /* QiQRCodeViewController.h */,
+				06516AF9219A967900F47CCF /* QiQRCodeViewController.m */,
+				06516AFB219A968400F47CCF /* QiBarCodeViewController.h */,
+				06516AFC219A968400F47CCF /* QiBarCodeViewController.m */,
+				06516AFE219A999C00F47CCF /* QiScanQRCodeManager.h */,
+				06516AFF219A999C00F47CCF /* QiScanQRCodeManager.m */,
+				06516B01219AAE0B00F47CCF /* QiScanQRCodeView.h */,
+				06516B02219AAE0B00F47CCF /* QiScanQRCodeView.m */,
 				06516AE5219A6E4500F47CCF /* Main.storyboard */,
 				06516AE8219A6E4900F47CCF /* Assets.xcassets */,
 				06516AEA219A6E4900F47CCF /* LaunchScreen.storyboard */,
@@ -144,6 +169,11 @@
 				06516AE4219A6E4500F47CCF /* ViewController.m in Sources */,
 				06516AEF219A6E4900F47CCF /* main.m in Sources */,
 				06516AE1219A6E4500F47CCF /* AppDelegate.m in Sources */,
+				06516AFD219A968400F47CCF /* QiBarCodeViewController.m in Sources */,
+				06516B00219A999C00F47CCF /* QiScanQRCodeManager.m in Sources */,
+				06516B03219AAE0B00F47CCF /* QiScanQRCodeView.m in Sources */,
+				06516AFA219A967900F47CCF /* QiQRCodeViewController.m in Sources */,
+				06516AF7219A966F00F47CCF /* QiScanQRCodeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,12 +316,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8ZX24TX624;
 				INFOPLIST_FILE = QiQRCode/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.qishare.QiQRCode;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qishare.ios.hxs;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -302,12 +334,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8ZX24TX624;
 				INFOPLIST_FILE = QiQRCode/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.qishare.QiQRCode;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qishare.ios.hxs;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
