@@ -15,11 +15,12 @@ static NSString *QiInputCorrectionLevelM = @"M";//!< M: 15%
 static NSString *QiInputCorrectionLevelQ = @"Q";//!< Q: 25%
 static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
-@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate>
+@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
 
 @property (nonatomic, copy) void(^callback)(NSString *);
+@property (nonatomic, copy) void(^lightDimmed)(BOOL);
 @property (nonatomic, assign) BOOL autoStop;
 
 @end
@@ -35,25 +36,24 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     if (self) {
         
         AVCaptureDevice *camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-        AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:camera error:nil];
+        AVCaptureDeviceInput *cameraInput = [AVCaptureDeviceInput deviceInputWithDevice:camera error:nil];
         
-        AVCaptureMetadataOutput *output = [[AVCaptureMetadataOutput alloc] init];
-        [output setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
-        
+        AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
+        [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
         CGFloat x = rectFrame.origin.x / previewView.bounds.size.width;
         CGFloat y = rectFrame.origin.y / previewView.bounds.size.height;
         CGFloat w = rectFrame.size.width / previewView.bounds.size.width;
         CGFloat h = rectFrame.size.height / previewView.bounds.size.height;
-        output.rectOfInterest = (CGRect){y, x, h, w};
+        metadataOutput.rectOfInterest = (CGRect){y, x, h, w};
         
         _session = [[AVCaptureSession alloc] init];
         _session.sessionPreset = AVCaptureSessionPresetHigh;
-        if ([_session canAddInput:input]) {
-            [_session addInput:input];
+        if ([_session canAddInput:cameraInput]) {
+            [_session addInput:cameraInput];
         }
-        if ([_session canAddOutput:output]) {
-            [_session addOutput:output];
-            output.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+        if ([_session canAddOutput:metadataOutput]) {
+            [_session addOutput:metadataOutput];
+            metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
         }
         
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
@@ -88,6 +88,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     if (_session.isRunning) {
         [_session stopRunning];
     }
+    
+    [QiCodeManager switchTorch:NO];
 }
 
 
@@ -106,6 +108,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         }
     }
 }
+
 
 
 #pragma mark - 生成二维码/条形码
@@ -197,6 +200,50 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     UIGraphicsEndImageContext();
     
     return codeImage;
+}
+
+
+
+#pragma mark - 打开/关闭手电筒
+
+- (void)observeLightDimmed:(void (^)(BOOL))lightDimmed {
+    
+    _lightDimmed = lightDimmed;
+    
+    AVCaptureVideoDataOutput *lightOutput = [[AVCaptureVideoDataOutput alloc] init];
+    [lightOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
+    
+    if ([_session canAddOutput:lightOutput]) {
+        [_session addOutput:lightOutput];
+    }
+}
+
++ (void)switchTorch:(BOOL)on {
+    
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    AVCaptureTorchMode torchMode = on? AVCaptureTorchModeOn: AVCaptureTorchModeOff;
+    
+    if (device.hasFlash && device.hasTorch && torchMode != device.torchMode) {
+        [device lockForConfiguration:nil];
+        [device setTorchMode:torchMode];
+        [device unlockForConfiguration];
+    }
+}
+
+
+#pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
+
+- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    
+    CFDictionaryRef metadataDicRef = CMCopyDictionaryOfAttachments(NULL, sampleBuffer, kCMAttachmentMode_ShouldPropagate);
+    NSDictionary *metadataDic = (__bridge NSDictionary *)metadataDicRef;
+    CFRelease(metadataDicRef);
+    NSDictionary *exifDic = metadataDic[(__bridge NSString *)kCGImagePropertyExifDictionary];
+    CGFloat brightness = [exifDic[(__bridge NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
+    
+    if (_lightDimmed && brightness < .0) {
+        _lightDimmed(YES);
+    }
 }
 
 @end

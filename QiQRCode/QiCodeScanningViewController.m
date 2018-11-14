@@ -41,6 +41,13 @@
     [self startScanning];
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    
+    [super viewWillDisappear:animated];
+    
+    [self stopScanning];
+}
+
 - (void)dealloc {
     
     NSLog(@"%s", __func__);
@@ -60,6 +67,10 @@
         [weakSelf stopScanning];
         [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
     }];
+    
+    [_manager observeLightDimmed:^(BOOL dimmed) {
+        [QiCodeManager switchTorch:YES];
+    }];
 }
 
 - (void)stopScanning {
@@ -67,7 +78,6 @@
     [_manager stopScanning];
     [_scanView stopScanningAnimation];
 }
-
 
 
 #pragma mark - Notification functions
