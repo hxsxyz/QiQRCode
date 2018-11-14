@@ -1,5 +1,5 @@
 //
-//  QiBarCodeViewController.h
+//  QiCodeScanningViewController.h
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface QiBarCodeViewController : UIViewController
+@interface QiCodeScanningViewController : UIViewController
 
 @end
 

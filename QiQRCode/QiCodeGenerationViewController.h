@@ -1,5 +1,5 @@
 //
-//  QiScanQRCodeViewController.h
+//  QiCodeGenerationViewController.h
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
@@ -10,7 +10,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface QiScanQRCodeViewController : UIViewController
+@interface QiCodeGenerationViewController : UIViewController
+
+@property (nonatomic, copy) NSString *code;
 
 @end
 

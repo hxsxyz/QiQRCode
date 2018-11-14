@@ -1,14 +1,14 @@
 //
-//  QiScanQRCodeView.m
+//  QiCodeScanningView.m
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
 //  Copyright © 2018年 QiShare. All rights reserved.
 //
 
-#import "QiScanQRCodeView.h"
+#import "QiCodeScanningView.h"
 
-@interface QiScanQRCodeView ()
+@interface QiCodeScanningView ()
 
 @property (nonatomic, strong) CAShapeLayer *maskLayer;
 @property (nonatomic, strong) CAShapeLayer *rectLayer;
@@ -17,11 +17,11 @@
 
 @end
 
-@implementation QiScanQRCodeView
+@implementation QiCodeScanningView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     
-    return [[QiScanQRCodeView alloc] initWithFrame:frame rectFrame:CGRectZero];
+    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame {
@@ -82,16 +82,16 @@
         [self.layer addSublayer:_cornerLayer];
         
         // 根据rectFrame画扫描线
-        CGRect lineFrame = (CGRect){rectFrame.origin.x + 2.0, rectFrame.origin.y, rectFrame.size.width - 4.0, 2.0};
+        CGRect lineFrame = (CGRect){rectFrame.origin.x + 2.0, rectFrame.origin.y, rectFrame.size.width - 4.0, 1.0};
         UIBezierPath *linePath = [UIBezierPath bezierPathWithOvalInRect:(CGRect){.0, .0, lineFrame.size.width, lineFrame.size.height}];
         _lineLayer = [CAShapeLayer layer];
         _lineLayer.frame = lineFrame;
         _lineLayer.path = linePath.CGPath;
-        _lineLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:.8].CGColor;
+        _lineLayer.fillColor = [UIColor whiteColor].CGColor;
         _lineLayer.shadowColor = [UIColor whiteColor].CGColor;
         _lineLayer.shadowRadius = lineFrame.size.height;
         _lineLayer.shadowOffset = (CGSize){.0, .0};
-        _lineLayer.shadowOpacity = 1.0;
+        _lineLayer.shadowOpacity = .8;
         
         // 根据rectFrame求最大边距
         CGFloat rectTop = rectFrame.origin.y;

@@ -1,5 +1,5 @@
 //
-//  QiScanQRCodeView.h
+//  QiCodeScanningView.h
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface QiScanQRCodeView : UIView
+@interface QiCodeScanningView : UIView
 
 @property (nonatomic, assign, readonly) CGRect rectFrame;
 

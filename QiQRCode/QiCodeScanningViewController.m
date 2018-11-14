@@ -1,33 +1,34 @@
 //
-//  QiScanQRCodeViewController.m
+//  QiCodeScanningViewController.m
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
 //  Copyright © 2018年 QiShare. All rights reserved.
 //
 
-#import "QiScanQRCodeViewController.h"
-#import "QiScanQRCodeManager.h"
-#import "QiScanQRCodeView.h"
+#import "QiCodeScanningViewController.h"
+#import "QiCodeGenerationViewController.h"
+#import "QiCodeScanningView.h"
+#import "QiCodeManager.h"
 
-@interface QiScanQRCodeViewController ()
+@interface QiCodeScanningViewController ()
 
-@property (nonatomic, strong) QiScanQRCodeView *scanView;
-@property (nonatomic, strong) QiScanQRCodeManager *manager;
+@property (nonatomic, strong) QiCodeScanningView *scanView;
+@property (nonatomic, strong) QiCodeManager *manager;
 
 @end
 
-@implementation QiScanQRCodeViewController
+@implementation QiCodeScanningViewController
 
 - (void)viewDidLoad {
     
     [super viewDidLoad];
     
-    _scanView = [[QiScanQRCodeView alloc] initWithFrame:self.view.bounds];
+    _scanView = [[QiCodeScanningView alloc] initWithFrame:self.view.bounds];
     _scanView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:_scanView];
     
-    _manager = [[QiScanQRCodeManager alloc] initWithPreviewView:_scanView rectFrame:_scanView.rectFrame];
+    _manager = [[QiCodeManager alloc] initWithPreviewView:_scanView rectFrame:_scanView.rectFrame];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
@@ -56,8 +57,8 @@
     
     __weak typeof(self) weakSelf = self;
     [_manager startScanningWithCallback:^(NSString * _Nonnull code) {
-        NSLog(@"code is %@", code);
         [weakSelf stopScanning];
+        [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
     }];
 }
 
@@ -79,6 +80,17 @@
 - (void)applicationWillEnterForeground:(NSNotification *)notification {
     
     [self startScanning];
+}
+
+
+#pragma mark - Navigation
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
+    if ([segue.identifier isEqualToString:@"showCodeGeneration"]) {
+        QiCodeGenerationViewController *codeGeneration = segue.destinationViewController;
+        codeGeneration.code = (NSString *)sender;
+    }
 }
 
 @end
