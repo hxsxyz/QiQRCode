@@ -35,11 +35,6 @@
     return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:rectFrame rectColor:[UIColor clearColor]];
 }
 
-- (instancetype)initWithFrame:(CGRect)frame rectColor:(UIColor *)rectColor {
-    
-    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:rectColor];
-}
-
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame rectColor:(UIColor *)rectColor {
     
     self = [super initWithFrame:frame];
@@ -50,9 +45,7 @@
         
         if (CGRectEqualToRect(rectFrame, CGRectZero)) {
             CGFloat rectSide = fminf(self.layer.bounds.size.width, self.layer.bounds.size.height) * 2 / 3;
-            CGFloat rectX = (self.layer.bounds.size.width - rectSide) / 2;
-            CGFloat rectY = (self.layer.bounds.size.height - rectSide) / 2;
-            rectFrame = (CGRect){rectX, rectY, rectSide, rectSide};
+            rectFrame = CGRectMake((self.layer.bounds.size.width - rectSide) / 2, (self.layer.bounds.size.height - rectSide) / 2, rectSide, rectSide);
         }
         if (CGColorEqualToColor(rectColor.CGColor, [UIColor clearColor].CGColor)) {
             rectColor = [UIColor whiteColor];

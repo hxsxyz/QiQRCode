@@ -57,11 +57,13 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         [previewView.layer insertSublayer:previewLayer atIndex:0];
         
         // 设置扫码区域
-        CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
-        CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
-        CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
-        CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
-        metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
+        if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
+            CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
+            CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
+            CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
+            CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
+            metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
+        }
         
         // 可以在[session startRunning];之后用此语句设置扫码区域
         // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
