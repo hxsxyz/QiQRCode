@@ -69,8 +69,8 @@
     } autoStop:YES];
     
     [_manager observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
-        weakSelf.scanView.torchSwith.hidden = !dimmed && !torchOn;
-        [weakSelf.scanView startScanningAnimation:weakSelf.scanView.torchSwith.hidden];
+        [weakSelf.scanView showTorchSwithButton:(dimmed || torchOn)];
+        [weakSelf.scanView startScanningAnimation:(!dimmed && !torchOn)];
     }];
 }
 

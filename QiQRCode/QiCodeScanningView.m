@@ -16,6 +16,8 @@
 @property (nonatomic, strong) CAShapeLayer *lineLayer;
 @property (nonatomic, strong) CABasicAnimation *lineAnimation;
 
+@property (nonatomic, strong) UIButton *torchSwithButton;
+
 @end
 
 @implementation QiCodeScanningView
@@ -127,19 +129,19 @@
         [self.layer insertSublayer:_maskLayer atIndex:0];
         
         // 手电筒开关
-        _torchSwith = [UIButton buttonWithType:UIButtonTypeCustom];
-        _torchSwith.frame = CGRectMake(.0, .0, 60.0, 70.0);
-        _torchSwith.center = CGPointMake(CGRectGetMidX(rectFrame), rectFrame.origin.y + rectFrame.size.height - _torchSwith.bounds.size.height / 2);
-        _torchSwith.titleLabel.font = [UIFont systemFontOfSize:12.0];
-        [_torchSwith setTitle:@"轻触照亮" forState:UIControlStateNormal];
-        [_torchSwith setTitle:@"轻触关闭" forState:UIControlStateSelected];
-        [_torchSwith setImage:[UIImage imageNamed:@"qi_torch_switch_off"] forState:UIControlStateNormal];
-        [_torchSwith setImage:[UIImage imageNamed:@"qi_torch_switch_on"] forState:UIControlStateSelected];
-        [_torchSwith addTarget:self action:@selector(torchSwitchClicked:) forControlEvents:UIControlEventTouchUpInside];
-        _torchSwith.titleEdgeInsets = UIEdgeInsetsMake(_torchSwith.imageView.frame.size.height + 5.0, -_torchSwith.imageView.bounds.size.width, .0, .0);
-        _torchSwith.imageEdgeInsets = UIEdgeInsetsMake(.0, _torchSwith.titleLabel.bounds.size.width / 2, _torchSwith.titleLabel.frame.size.height + 5.0, - _torchSwith.titleLabel.bounds.size.width / 2);
-        _torchSwith.hidden = YES;
-        [self addSubview:_torchSwith];
+        _torchSwithButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _torchSwithButton.frame = CGRectMake(.0, .0, 60.0, 70.0);
+        _torchSwithButton.center = CGPointMake(CGRectGetMidX(rectFrame), rectFrame.origin.y + rectFrame.size.height - _torchSwithButton.bounds.size.height / 2);
+        _torchSwithButton.titleLabel.font = [UIFont systemFontOfSize:12.0];
+        [_torchSwithButton setTitle:@"轻触照亮" forState:UIControlStateNormal];
+        [_torchSwithButton setTitle:@"轻触关闭" forState:UIControlStateSelected];
+        [_torchSwithButton setImage:[UIImage imageNamed:@"qi_torch_switch_off"] forState:UIControlStateNormal];
+        [_torchSwithButton setImage:[UIImage imageNamed:@"qi_torch_switch_on"] forState:UIControlStateSelected];
+        [_torchSwithButton addTarget:self action:@selector(torchSwitchClicked:) forControlEvents:UIControlEventTouchUpInside];
+        _torchSwithButton.titleEdgeInsets = UIEdgeInsetsMake(_torchSwithButton.imageView.frame.size.height + 5.0, -_torchSwithButton.imageView.bounds.size.width, .0, .0);
+        _torchSwithButton.imageEdgeInsets = UIEdgeInsetsMake(.0, _torchSwithButton.titleLabel.bounds.size.width / 2, _torchSwithButton.titleLabel.frame.size.height + 5.0, - _torchSwithButton.titleLabel.bounds.size.width / 2);
+        _torchSwithButton.hidden = YES;
+        [self addSubview:_torchSwithButton];
         
         // 扫描线动画
         _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
@@ -151,6 +153,11 @@
     }
     
     return self;
+}
+
+- (void)dealloc {
+    
+    NSLog(@"%s", __func__);
 }
 
 
@@ -170,6 +177,16 @@
     } else {
         [_lineLayer removeAnimationForKey:@"lineAnimation"];
     }
+}
+
+- (void)showTorchSwithButton:(BOOL)show {
+    
+    self.torchSwithButton.hidden = !show;
+    
+    CGFloat alpha = fabs(_torchSwithButton.alpha - 1);
+    [UIView animateWithDuration:.25 animations:^{
+        self.torchSwithButton.alpha = alpha;
+    }];
 }
 
 
