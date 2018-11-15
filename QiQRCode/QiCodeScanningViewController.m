@@ -24,7 +24,7 @@
     
     [super viewDidLoad];
     
-    _scanView = [[QiCodeScanningView alloc] initWithFrame:self.view.bounds];
+    _scanView = [[QiCodeScanningView alloc] initWithFrame:self.view.bounds rectColor:[UIColor greenColor]];
     _scanView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     _scanView.delegate = self;
     [self.view addSubview:_scanView];

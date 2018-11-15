@@ -40,11 +40,6 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         
         AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
         [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
-        CGFloat x = rectFrame.origin.x / previewView.bounds.size.width;
-        CGFloat y = rectFrame.origin.y / previewView.bounds.size.height;
-        CGFloat w = rectFrame.size.width / previewView.bounds.size.width;
-        CGFloat h = rectFrame.size.height / previewView.bounds.size.height;
-        metadataOutput.rectOfInterest = (CGRect){y, x, h, w};
         
         _session = [[AVCaptureSession alloc] init];
         _session.sessionPreset = AVCaptureSessionPresetHigh;
@@ -57,12 +52,27 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         }
         
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
-        previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
         previewLayer.frame = previewView.layer.bounds;
+        previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
         [previewView.layer insertSublayer:previewLayer atIndex:0];
+        
+        // 设置扫码区域
+        CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
+        CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
+        CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
+        CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
+        metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
+        
+        // 可以在[session startRunning];之后用此语句设置扫码区域
+        // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
     }
     
     return self;
+}
+
+- (void)dealloc {
+    
+    NSLog(@"%s", __func__);
 }
 
 

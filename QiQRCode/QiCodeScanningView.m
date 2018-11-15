@@ -17,6 +17,9 @@
 @property (nonatomic, strong) CABasicAnimation *lineAnimation;
 
 @property (nonatomic, strong) UIButton *torchSwithButton;
+@property (nonatomic, strong) UILabel *tipsLabel;
+
+//@property (nonatomic, strong) UIColor *rectColor;
 
 @end
 
@@ -24,10 +27,20 @@
 
 - (instancetype)initWithFrame:(CGRect)frame {
     
-    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero];
+    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:[UIColor clearColor]];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame {
+    
+    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:rectFrame rectColor:[UIColor clearColor]];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame rectColor:(UIColor *)rectColor {
+    
+    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:rectColor];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame rectColor:(UIColor *)rectColor {
     
     self = [super initWithFrame:frame];
     
@@ -41,13 +54,16 @@
             CGFloat rectY = (self.layer.bounds.size.height - rectSide) / 2;
             rectFrame = (CGRect){rectX, rectY, rectSide, rectSide};
         }
+        if (CGColorEqualToColor(rectColor.CGColor, [UIColor clearColor].CGColor)) {
+            rectColor = [UIColor whiteColor];
+        }
         // 根据自定义的rectFrame画矩形框（扫码框）
         UIBezierPath *rectPath = [UIBezierPath bezierPathWithRect:(CGRect){.0, .0, rectFrame.size.width, rectFrame.size.height}];
         _rectLayer = [CAShapeLayer layer];
         _rectLayer.frame = rectFrame;
         _rectLayer.path = rectPath.CGPath;
         _rectLayer.lineWidth = .5;
-        _rectLayer.strokeColor = [UIColor whiteColor].CGColor;
+        _rectLayer.strokeColor = rectColor.CGColor;
         _rectLayer.fillColor = [UIColor clearColor].CGColor;
         [self.layer addSublayer:_rectLayer];
         
@@ -81,22 +97,26 @@
         _cornerLayer.frame = rectFrame;
         _cornerLayer.path = cornerPath.CGPath;
         _cornerLayer.lineWidth = cornerWidth;
-        _cornerLayer.strokeColor = [UIColor whiteColor].CGColor;
+        _cornerLayer.strokeColor = rectColor.CGColor;
         [self.layer addSublayer:_cornerLayer];
         
         // 根据rectFrame画扫描线
-        CGRect lineFrame = (CGRect){rectFrame.origin.x + 2.0, rectFrame.origin.y, rectFrame.size.width - 4.0, 1.0};
+        CGRect lineFrame = (CGRect){rectFrame.origin.x + 2.0, rectFrame.origin.y, rectFrame.size.width - 2.0 * 2, 1.0};
         UIBezierPath *linePath = [UIBezierPath bezierPathWithOvalInRect:(CGRect){.0, .0, lineFrame.size.width, lineFrame.size.height}];
         _lineLayer = [CAShapeLayer layer];
         _lineLayer.frame = lineFrame;
         _lineLayer.path = linePath.CGPath;
-        _lineLayer.fillColor = [UIColor whiteColor].CGColor;
-        _lineLayer.shadowColor = [UIColor whiteColor].CGColor;
-        _lineLayer.shadowRadius = lineFrame.size.height;
-        _lineLayer.shadowOffset = CGSizeMake(.0, .0);
-        _lineLayer.shadowOpacity = 1.0;
+        _lineLayer.fillColor = rectColor.CGColor;
         _lineLayer.hidden = YES;
         [self.layer addSublayer:_lineLayer];
+        
+        // 扫描线动画
+        _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
+        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _lineLayer.frame.size.height}];
+        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _rectLayer.frame.size.height - _lineLayer.frame.size.height}];
+        _lineAnimation.repeatCount = CGFLOAT_MAX;
+        _lineAnimation.autoreverses = YES;
+        _lineAnimation.duration = 2.0;
         
         // 根据rectFrame求最大边距
         CGFloat rectTop = rectFrame.origin.y;
@@ -131,25 +151,29 @@
         // 手电筒开关
         _torchSwithButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _torchSwithButton.frame = CGRectMake(.0, .0, 60.0, 70.0);
-        _torchSwithButton.center = CGPointMake(CGRectGetMidX(rectFrame), rectFrame.origin.y + rectFrame.size.height - _torchSwithButton.bounds.size.height / 2);
+        _torchSwithButton.center = CGPointMake(CGRectGetMidX(rectFrame), CGRectGetMaxY(rectFrame) - CGRectGetMidY(_torchSwithButton.bounds));
         _torchSwithButton.titleLabel.font = [UIFont systemFontOfSize:12.0];
         [_torchSwithButton setTitle:@"轻触照亮" forState:UIControlStateNormal];
         [_torchSwithButton setTitle:@"轻触关闭" forState:UIControlStateSelected];
         [_torchSwithButton setImage:[UIImage imageNamed:@"qi_torch_switch_off"] forState:UIControlStateNormal];
-        [_torchSwithButton setImage:[UIImage imageNamed:@"qi_torch_switch_on"] forState:UIControlStateSelected];
+        [_torchSwithButton setImage:[[UIImage imageNamed:@"qi_torch_switch_on"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected];
         [_torchSwithButton addTarget:self action:@selector(torchSwitchClicked:) forControlEvents:UIControlEventTouchUpInside];
+        _torchSwithButton.tintColor = rectColor;
         _torchSwithButton.titleEdgeInsets = UIEdgeInsetsMake(_torchSwithButton.imageView.frame.size.height + 5.0, -_torchSwithButton.imageView.bounds.size.width, .0, .0);
         _torchSwithButton.imageEdgeInsets = UIEdgeInsetsMake(.0, _torchSwithButton.titleLabel.bounds.size.width / 2, _torchSwithButton.titleLabel.frame.size.height + 5.0, - _torchSwithButton.titleLabel.bounds.size.width / 2);
         _torchSwithButton.hidden = YES;
         [self addSubview:_torchSwithButton];
         
-        // 扫描线动画
-        _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
-        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _lineLayer.frame.size.height}];
-        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _rectLayer.frame.size.height - _lineLayer.frame.size.height}];
-        _lineAnimation.repeatCount = CGFLOAT_MAX;
-        _lineAnimation.autoreverses = YES;
-        _lineAnimation.duration = 2.5;
+        // 提示语label
+        _tipsLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+        _tipsLabel.textAlignment = NSTextAlignmentCenter;
+        _tipsLabel.textColor = [UIColor lightGrayColor];
+        _tipsLabel.font = [UIFont systemFontOfSize:13.0];
+        _tipsLabel.text = @"将二维码/条形码放入框内即可自动扫描";
+        _tipsLabel.numberOfLines = 0;
+        [_tipsLabel sizeToFit];
+        _tipsLabel.center = CGPointMake(CGRectGetMidX(rectFrame), CGRectGetMaxY(rectFrame) + CGRectGetMidY(_tipsLabel.bounds)+ 12.0);
+        [self addSubview:_tipsLabel];
     }
     
     return self;
@@ -181,12 +205,20 @@
 
 - (void)showTorchSwithButton:(BOOL)show {
     
-    self.torchSwithButton.hidden = !show;
-    
-    CGFloat alpha = fabs(_torchSwithButton.alpha - 1);
-    [UIView animateWithDuration:.25 animations:^{
-        self.torchSwithButton.alpha = alpha;
-    }];
+    if (show) {
+        _torchSwithButton.hidden = NO;
+        _torchSwithButton.alpha = .0;
+        [UIView animateWithDuration:.25 animations:^{
+            self.torchSwithButton.alpha = 1.0;
+        }];
+    }
+    else {
+        [UIView animateWithDuration:.25 animations:^{
+            self.torchSwithButton.alpha = .0;
+        } completion:^(BOOL finished) {
+            self.torchSwithButton.hidden = YES;
+        }];
+    }
 }
 
 
