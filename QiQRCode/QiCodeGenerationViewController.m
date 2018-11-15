@@ -30,7 +30,7 @@
 
 - (IBAction)generateQRCode:(id)sender {
  
-    UIImage *codeImage = [QiCodeManager generateQRCode:_code size:_codeImageView.bounds.size logo:[UIImage imageNamed:@"qi_logo"]];
+    UIImage *codeImage = [QiCodeManager generateQRCode:_code size:_codeImageView.bounds.size logo:[UIImage imageNamed:@"qi_logo_qrcode"]];
     _codeImageView.image = codeImage;
 }
 

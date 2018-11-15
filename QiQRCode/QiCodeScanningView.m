@@ -14,6 +14,7 @@
 @property (nonatomic, strong) CAShapeLayer *rectLayer;
 @property (nonatomic, strong) CAShapeLayer *cornerLayer;
 @property (nonatomic, strong) CAShapeLayer *lineLayer;
+@property (nonatomic, strong) CABasicAnimation *lineAnimation;
 
 @end
 
@@ -90,8 +91,10 @@
         _lineLayer.fillColor = [UIColor whiteColor].CGColor;
         _lineLayer.shadowColor = [UIColor whiteColor].CGColor;
         _lineLayer.shadowRadius = lineFrame.size.height;
-        _lineLayer.shadowOffset = (CGSize){.0, .0};
-        _lineLayer.shadowOpacity = .8;
+        _lineLayer.shadowOffset = CGSizeMake(.0, .0);
+        _lineLayer.shadowOpacity = 1.0;
+        _lineLayer.hidden = YES;
+        [self.layer addSublayer:_lineLayer];
         
         // 根据rectFrame求最大边距
         CGFloat rectTop = rectFrame.origin.y;
@@ -122,6 +125,29 @@
         _maskLayer.strokeColor = [[UIColor blackColor] colorWithAlphaComponent:.5].CGColor;
         _maskLayer.fillColor = [UIColor clearColor].CGColor;
         [self.layer insertSublayer:_maskLayer atIndex:0];
+        
+        // 手电筒开关
+        _torchSwith = [UIButton buttonWithType:UIButtonTypeCustom];
+        _torchSwith.frame = CGRectMake(.0, .0, 60.0, 70.0);
+        _torchSwith.center = CGPointMake(CGRectGetMidX(rectFrame), rectFrame.origin.y + rectFrame.size.height - _torchSwith.bounds.size.height / 2);
+        _torchSwith.titleLabel.font = [UIFont systemFontOfSize:12.0];
+        [_torchSwith setTitle:@"轻触照亮" forState:UIControlStateNormal];
+        [_torchSwith setTitle:@"轻触关闭" forState:UIControlStateSelected];
+        [_torchSwith setImage:[UIImage imageNamed:@"qi_torch_switch_off"] forState:UIControlStateNormal];
+        [_torchSwith setImage:[UIImage imageNamed:@"qi_torch_switch_on"] forState:UIControlStateSelected];
+        [_torchSwith addTarget:self action:@selector(torchSwitchClicked:) forControlEvents:UIControlEventTouchUpInside];
+        _torchSwith.titleEdgeInsets = UIEdgeInsetsMake(_torchSwith.imageView.frame.size.height + 5.0, -_torchSwith.imageView.bounds.size.width, .0, .0);
+        _torchSwith.imageEdgeInsets = UIEdgeInsetsMake(.0, _torchSwith.titleLabel.bounds.size.width / 2, _torchSwith.titleLabel.frame.size.height + 5.0, - _torchSwith.titleLabel.bounds.size.width / 2);
+        _torchSwith.hidden = YES;
+        [self addSubview:_torchSwith];
+        
+        // 扫描线动画
+        _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
+        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _lineLayer.frame.size.height}];
+        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _rectLayer.frame.size.height - _lineLayer.frame.size.height}];
+        _lineAnimation.repeatCount = CGFLOAT_MAX;
+        _lineAnimation.autoreverses = YES;
+        _lineAnimation.duration = 2.5;
     }
     
     return self;
@@ -135,27 +161,25 @@
     return _rectLayer.frame;
 }
 
-- (void)startScanningAnimation {
+- (void)startScanningAnimation:(BOOL)start {
     
-    [self stopScanningAnimation];
+    _lineLayer.hidden = !start;
     
-    if (!_lineLayer.superlayer) {
-        [self.layer insertSublayer:_lineLayer above:_cornerLayer];
+    if (start) {
+        [_lineLayer addAnimation:_lineAnimation forKey:@"lineAnimation"];
+    } else {
+        [_lineLayer removeAnimationForKey:@"lineAnimation"];
     }
-    
-    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
-    animation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _lineLayer.frame.size.height}];
-    animation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _rectLayer.frame.size.height - _lineLayer.frame.size.height}];
-    animation.duration = 2.0;
-    animation.autoreverses = YES;
-    animation.repeatCount = CGFLOAT_MAX;
-    [_lineLayer addAnimation:animation forKey:@"lineLayerAnimation"];
 }
 
-- (void)stopScanningAnimation {
+
+#pragma mark - Action functions
+
+- (void)torchSwitchClicked:(UIButton *)button {
     
-    [_lineLayer removeAllAnimations];
-    [_lineLayer removeFromSuperlayer];
+    if ([_delegate respondsToSelector:@selector(codeScanningView:didClickedTorchSwitch:)]) {
+        [_delegate codeScanningView:self didClickedTorchSwitch:button];
+    }
 }
 
 @end

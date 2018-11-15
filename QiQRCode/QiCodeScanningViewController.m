@@ -11,7 +11,7 @@
 #import "QiCodeScanningView.h"
 #import "QiCodeManager.h"
 
-@interface QiCodeScanningViewController ()
+@interface QiCodeScanningViewController () <QiCodeScanningViewDelegate>
 
 @property (nonatomic, strong) QiCodeScanningView *scanView;
 @property (nonatomic, strong) QiCodeManager *manager;
@@ -26,6 +26,7 @@
     
     _scanView = [[QiCodeScanningView alloc] initWithFrame:self.view.bounds];
     _scanView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _scanView.delegate = self;
     [self.view addSubview:_scanView];
     
     _manager = [[QiCodeManager alloc] initWithPreviewView:_scanView rectFrame:_scanView.rectFrame];
@@ -60,23 +61,23 @@
 
 - (void)startScanning {
     
-    [_scanView startScanningAnimation];
+    [_scanView startScanningAnimation:YES];
     
     __weak typeof(self) weakSelf = self;
     [_manager startScanningWithCallback:^(NSString * _Nonnull code) {
-        [weakSelf stopScanning];
         [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
-    }];
+    } autoStop:YES];
     
-    [_manager observeLightDimmed:^(BOOL dimmed) {
-        [QiCodeManager switchTorch:YES];
+    [_manager observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
+        weakSelf.scanView.torchSwith.hidden = !dimmed && !torchOn;
+        [weakSelf.scanView startScanningAnimation:weakSelf.scanView.torchSwith.hidden];
     }];
 }
 
 - (void)stopScanning {
     
     [_manager stopScanning];
-    [_scanView stopScanningAnimation];
+    [_scanView startScanningAnimation:NO];
 }
 
 
@@ -90,6 +91,17 @@
 - (void)applicationWillEnterForeground:(NSNotification *)notification {
     
     [self startScanning];
+}
+
+
+#pragma mark - QiCodeScanningViewDelegate
+
+- (void)codeScanningView:(QiCodeScanningView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton {
+    
+    switchButton.selected = !switchButton.selected;
+    
+    [QiCodeManager switchTorch:switchButton.selected];
+    _manager.lightStatusHasCalled = switchButton.selected;
 }
 
 

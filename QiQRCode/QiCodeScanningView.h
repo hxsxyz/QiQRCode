@@ -10,14 +10,22 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class QiCodeScanningView;
+@protocol QiCodeScanningViewDelegate <NSObject>
+
+- (void)codeScanningView:(QiCodeScanningView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton;
+
+@end
+
 @interface QiCodeScanningView : UIView
 
+@property (nonatomic, strong) UIButton *torchSwith;
 @property (nonatomic, assign, readonly) CGRect rectFrame;
+@property (nonatomic, weak) id<QiCodeScanningViewDelegate> delegate;
 
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame;
 
-- (void)startScanningAnimation;
-- (void)stopScanningAnimation;
+- (void)startScanningAnimation:(BOOL)start;
 
 @end
 

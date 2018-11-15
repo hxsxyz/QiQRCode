@@ -29,7 +29,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - 光感/手电筒
 
-- (void)observeLightDimmed:(void(^)(BOOL))lightDimmed;
+@property (nonatomic, assign) BOOL lightStatusHasCalled;
+
+- (void)observeLightStatus:(void(^)(BOOL, BOOL))lightStatus;
 + (void)switchTorch:(BOOL)on;
 
 @end

@@ -19,8 +19,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 @property (nonatomic, strong) AVCaptureSession *session;
 
+@property (nonatomic, copy) void(^lightStatus)(BOOL, BOOL);
 @property (nonatomic, copy) void(^callback)(NSString *);
-@property (nonatomic, copy) void(^lightDimmed)(BOOL);
 @property (nonatomic, assign) BOOL autoStop;
 
 @end
@@ -206,9 +206,9 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 #pragma mark - 打开/关闭手电筒
 
-- (void)observeLightDimmed:(void (^)(BOOL))lightDimmed {
+- (void)observeLightStatus:(void (^)(BOOL, BOOL))lightStatus {
     
-    _lightDimmed = lightDimmed;
+    _lightStatus = lightStatus;
     
     AVCaptureVideoDataOutput *lightOutput = [[AVCaptureVideoDataOutput alloc] init];
     [lightOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
@@ -241,8 +241,20 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     NSDictionary *exifDic = metadataDic[(__bridge NSString *)kCGImagePropertyExifDictionary];
     CGFloat brightness = [exifDic[(__bridge NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
     
-    if (_lightDimmed && brightness < .0) {
-        _lightDimmed(YES);
+    BOOL dimmed = brightness < 1.0;
+    BOOL torchOn = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo].torchMode == AVCaptureTorchModeOn;
+    static BOOL lastDimmed = NO;
+    
+    if (_lightStatus) {
+        if (!_lightStatusHasCalled) {
+            _lightStatus(dimmed, torchOn);
+            _lightStatusHasCalled = YES;
+            lastDimmed = dimmed;
+        }
+        else if (dimmed != lastDimmed) {
+            _lightStatus(dimmed, torchOn);
+            lastDimmed = dimmed;
+        }
     }
 }
 
