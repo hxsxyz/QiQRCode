@@ -23,27 +23,23 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <state key="normal" title="扫描二维码/条形码"/>
                                 <connections>
-                                    <segue destination="XRC-MC-OCb" kind="show" id="IzL-rN-RYN"/>
+                                    <segue destination="XRC-MC-OCb" kind="show" id="fcs-EG-Vg0"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7xm-e0-ib8">
-                                <rect key="frame" x="144" y="349" width="87" height="33"/>
+                                <rect key="frame" x="115.5" y="349" width="144" height="33"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <state key="normal" title="生成二维码"/>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Iou-3c-JUu">
-                                <rect key="frame" x="144" y="402" width="87" height="33"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <state key="normal" title="生成条形码"/>
+                                <state key="normal" title="生成二维码/条形码"/>
+                                <connections>
+                                    <segue destination="JVF-L7-kcO" kind="show" id="Ej0-W4-aRM"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="7xm-e0-ib8" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="3VZ-4q-P5d"/>
                             <constraint firstItem="zmm-Zt-t6I" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="Rds-Wq-UrA"/>
-                            <constraint firstItem="Iou-3c-JUu" firstAttribute="top" secondItem="7xm-e0-ib8" secondAttribute="bottom" constant="20" id="flt-r7-X1c"/>
                             <constraint firstItem="7xm-e0-ib8" firstAttribute="top" secondItem="zmm-Zt-t6I" secondAttribute="bottom" constant="20" id="iet-yZ-5NF"/>
-                            <constraint firstItem="Iou-3c-JUu" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="s9x-Fh-Xfp"/>
                             <constraint firstItem="7xm-e0-ib8" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="zgv-1A-klw"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -85,22 +81,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Y8k-t9-Yb7">
-                                <rect key="frame" x="71.5" y="94" width="232" height="232"/>
+                            <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Y8k-t9-Yb7">
+                                <rect key="frame" x="71.5" y="154" width="232" height="232"/>
+                                <gestureRecognizers/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="Y8k-t9-Yb7" secondAttribute="height" multiplier="1:1" id="FOO-E6-OO4"/>
                                 </constraints>
-                            </imageView>
-                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="code string" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="NUh-6s-S1a">
-                                <rect key="frame" x="30" y="346" width="315" height="20.5"/>
-                                <gestureRecognizers/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
                                 <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Zq6-D7-hk9" appends="YES" id="wkP-vj-0HD"/>
+                                    <outletCollection property="gestureRecognizers" destination="Zq6-D7-hk9" appends="YES" id="YAD-tQ-Q1O"/>
                                 </connections>
-                            </label>
+                            </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S1l-4S-Ksp">
                                 <rect key="frame" x="30" y="604" width="315" height="33"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -117,40 +107,58 @@
                                     <action selector="generateQRCode:" destination="JVF-L7-kcO" eventType="touchUpInside" id="x6N-DL-FNE"/>
                                 </connections>
                             </button>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="输入二维码/条形码内容 " textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9RS-3b-oOT">
+                                <rect key="frame" x="30" y="94" width="315" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="Tze-Zv-zZ7"/>
+                                </constraints>
+                                <nil key="textColor"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="Y8k-t9-Yb7" firstAttribute="centerX" secondItem="tOb-p3-xnJ" secondAttribute="centerX" id="1lS-NT-ZBa"/>
-                            <constraint firstItem="tOb-p3-xnJ" firstAttribute="trailing" secondItem="NUh-6s-S1a" secondAttribute="trailing" constant="30" id="2Cd-rk-4ur"/>
                             <constraint firstItem="S1l-4S-Ksp" firstAttribute="leading" secondItem="tOb-p3-xnJ" secondAttribute="leading" constant="30" id="2iA-a0-pDZ"/>
                             <constraint firstItem="Y8k-t9-Yb7" firstAttribute="width" secondItem="QWa-SC-zym" secondAttribute="width" multiplier="0.618" id="87h-bu-9IV"/>
-                            <constraint firstItem="NUh-6s-S1a" firstAttribute="top" secondItem="Y8k-t9-Yb7" secondAttribute="bottom" constant="20" id="AkM-9i-6kd"/>
-                            <constraint firstItem="Y8k-t9-Yb7" firstAttribute="top" secondItem="tOb-p3-xnJ" secondAttribute="top" constant="30" id="WuO-kS-cfm"/>
+                            <constraint firstItem="9RS-3b-oOT" firstAttribute="top" secondItem="tOb-p3-xnJ" secondAttribute="top" constant="30" id="Js2-fj-SbQ"/>
+                            <constraint firstItem="9RS-3b-oOT" firstAttribute="leading" secondItem="tOb-p3-xnJ" secondAttribute="leading" constant="30" id="UJA-Cd-Qrz"/>
+                            <constraint firstItem="Y8k-t9-Yb7" firstAttribute="top" secondItem="9RS-3b-oOT" secondAttribute="bottom" constant="30" id="WCz-Bi-IYT"/>
                             <constraint firstItem="grD-rL-d9q" firstAttribute="leading" secondItem="tOb-p3-xnJ" secondAttribute="leading" constant="30" id="iYp-Jj-Kuw"/>
                             <constraint firstItem="S1l-4S-Ksp" firstAttribute="top" secondItem="grD-rL-d9q" secondAttribute="bottom" constant="20" id="qP9-qp-h9R"/>
                             <constraint firstItem="tOb-p3-xnJ" firstAttribute="trailing" secondItem="S1l-4S-Ksp" secondAttribute="trailing" constant="30" id="rRg-4D-UCi"/>
                             <constraint firstItem="tOb-p3-xnJ" firstAttribute="trailing" secondItem="grD-rL-d9q" secondAttribute="trailing" constant="30" id="x1N-vn-uR3"/>
-                            <constraint firstItem="NUh-6s-S1a" firstAttribute="leading" secondItem="tOb-p3-xnJ" secondAttribute="leading" constant="30" id="yiO-91-0lA"/>
+                            <constraint firstItem="tOb-p3-xnJ" firstAttribute="trailing" secondItem="9RS-3b-oOT" secondAttribute="trailing" constant="30" id="xPf-mG-tUf"/>
                             <constraint firstItem="tOb-p3-xnJ" firstAttribute="bottom" secondItem="S1l-4S-Ksp" secondAttribute="bottom" constant="30" id="ym1-9f-gwQ"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="tOb-p3-xnJ"/>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="wmC-jY-V4a" appends="YES" id="BUE-Jp-m1T"/>
+                        </connections>
                     </view>
                     <navigationItem key="navigationItem" title="二维码/条形码" id="2qH-ZU-C0c">
                         <barButtonItem key="backBarButtonItem" title=" " id="X7M-EX-jva"/>
                     </navigationItem>
                     <connections>
                         <outlet property="codeImageView" destination="Y8k-t9-Yb7" id="rfU-Ss-TS8"/>
-                        <outlet property="codeLabel" destination="NUh-6s-S1a" id="3fS-Kz-FeQ"/>
+                        <outlet property="codeTextField" destination="9RS-3b-oOT" id="aLc-zj-Bsf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="07b-nE-9vy" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <tapGestureRecognizer id="Zq6-D7-hk9">
                     <connections>
-                        <action selector="codeLabelTapped:" destination="JVF-L7-kcO" id="cSa-8J-MQM"/>
+                        <action selector="codeImageViewTapped:" destination="JVF-L7-kcO" id="Nl0-Be-UH2"/>
+                    </connections>
+                </tapGestureRecognizer>
+                <tapGestureRecognizer id="wmC-jY-V4a">
+                    <connections>
+                        <action selector="viewTapped:" destination="JVF-L7-kcO" id="10S-Zr-X5a"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="2536.8000000000002" y="133.5832083958021"/>
+            <point key="canvasLocation" x="1773.5999999999999" y="905.3973013493254"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="fWY-Tg-TYN">
@@ -171,4 +179,7 @@
             <point key="canvasLocation" x="184.80000000000001" y="-564.46776611694156"/>
         </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="Ej0-W4-aRM"/>
+    </inferredMetricsTieBreakers>
 </document>

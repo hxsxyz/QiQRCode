@@ -12,7 +12,7 @@
 @interface QiCodeGenerationViewController ()
 
 @property (weak, nonatomic) IBOutlet UIImageView *codeImageView;
-@property (weak, nonatomic) IBOutlet UILabel *codeLabel;
+@property (weak, nonatomic) IBOutlet UITextField *codeTextField;
 
 @end
 
@@ -22,48 +22,46 @@
     
     [super viewDidLoad];
     
-    _codeLabel.text = _code;
+    _codeTextField.text = _code;
 }
 
 
 #pragma mark - Action functions
 
 - (IBAction)generateQRCode:(id)sender {
- 
-    UIImage *codeImage = [QiCodeManager generateQRCode:_code size:_codeImageView.bounds.size logo:[UIImage imageNamed:@"qi_logo_qrcode"]];
+    
+    NSString *code = _codeTextField.text.length? _codeTextField.text: _codeTextField.placeholder;
+    UIImage *codeImage = [QiCodeManager generateQRCode:code size:_codeImageView.bounds.size];
     _codeImageView.image = codeImage;
 }
 
 - (IBAction)generateCode128:(id)sender {
     
-    UIImage *codeImage = [QiCodeManager generateCode128:_code size:_codeImageView.bounds.size];
+    NSString *code = _codeTextField.text.length? _codeTextField.text: _codeTextField.placeholder;
+    UIImage *codeImage = [QiCodeManager generateCode128:code size:_codeImageView.bounds.size];
     _codeImageView.image = codeImage;
 }
 
-- (IBAction)codeLabelTapped:(id)sender {
+- (IBAction)codeImageViewTapped:(id)sender {
     
-    NSURL *codeURL = [NSURL URLWithString:_codeLabel.text];
+    NSString *code = _codeTextField.text.length? _codeTextField.text: _codeTextField.placeholder;
+    NSURL *codeURL = [NSURL URLWithString:code];
     
     if ([[UIApplication sharedApplication] canOpenURL:codeURL]) {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:@"将跳转至Safari打开此链接" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"使用Safari打开链接" message:codeURL.absoluteString preferredStyle:UIAlertControllerStyleAlert];
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
-        UIAlertAction *confimAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIAlertAction *confimAction = [UIAlertAction actionWithTitle:@"打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [[UIApplication sharedApplication] openURL:codeURL];
         }];
         [alertController addAction:cancelAction];
         [alertController addAction:confimAction];
         [self.navigationController presentViewController:alertController animated:YES completion:nil];
     }
-    else {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:@"将跳转至Safari打开此链接" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
-        UIAlertAction *confimAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[UIApplication sharedApplication] openURL:codeURL];
-        }];
-        [alertController addAction:cancelAction];
-        [alertController addAction:confimAction];
-        [self.navigationController presentViewController:alertController animated:YES completion:nil];
-    }
+}
+
+- (IBAction)viewTapped:(id)sender {
+    
+    [self.view endEditing:YES];
 }
 
 @end

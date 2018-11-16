@@ -17,14 +17,6 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
-}
-
-- (IBAction)scanQRCode:(id)sender {
-}
-- (IBAction)generateQRCode:(id)sender {
-}
-- (IBAction)generateBarCode:(id)sender {
 }
 
 @end
