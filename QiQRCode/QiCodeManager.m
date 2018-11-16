@@ -15,7 +15,7 @@ static NSString *QiInputCorrectionLevelM = @"M";//!< M: 15%
 static NSString *QiInputCorrectionLevelQ = @"Q";//!< Q: 25%
 static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
-@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
 
@@ -29,26 +29,37 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 #pragma mark - 扫描二维码/条形码
 
+- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView {
+    
+    return [[QiCodeManager alloc] initWithPreviewView:previewView rectFrame:previewView.rectFrame];
+}
+
 - (instancetype)initWithPreviewView:(UIView *)previewView rectFrame:(CGRect)rectFrame {
     
     self = [super init];
     
     if (self) {
         
-        AVCaptureDevice *camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-        AVCaptureDeviceInput *cameraInput = [AVCaptureDeviceInput deviceInputWithDevice:camera error:nil];
+        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+        AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
         
         AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
         [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
         
+        AVCaptureStillImageOutput *imageOutput = [[AVCaptureStillImageOutput alloc] init];
+        imageOutput.outputSettings = @{AVVideoCodecKey: AVVideoCodecJPEG};
+        
         _session = [[AVCaptureSession alloc] init];
         _session.sessionPreset = AVCaptureSessionPresetHigh;
-        if ([_session canAddInput:cameraInput]) {
-            [_session addInput:cameraInput];
+        if ([_session canAddInput:deviceInput]) {
+            [_session addInput:deviceInput];
         }
         if ([_session canAddOutput:metadataOutput]) {
             [_session addOutput:metadataOutput];
             metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+        }
+        if ([_session canAddOutput:imageOutput]) {
+            [_session addOutput:imageOutput];
         }
         
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
@@ -67,6 +78,17 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         
         // 可以在[session startRunning];之后用此语句设置扫码区域
         // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
+        
+        // 设置设备附加属性
+        [device lockForConfiguration:nil];
+        if (device.isFocusPointOfInterestSupported && [device isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+            device.focusMode = AVCaptureFocusModeContinuousAutoFocus;
+        }
+        [device unlockForConfiguration];
+        
+        // 缩放手势
+        UIPinchGestureRecognizer *pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pin:)];
+        [previewView addGestureRecognizer:pinGesture];
     }
     
     return self;
@@ -100,7 +122,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     if (_session.isRunning) {
         [_session stopRunning];
     }
-    
+    [QiCodeManager resetZoomFactor];
     [QiCodeManager switchTorch:NO];
 }
 
@@ -120,7 +142,6 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         }
     }
 }
-
 
 
 #pragma mark - 生成二维码/条形码
@@ -158,6 +179,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 #pragma mark - Util functions
 
+// 缩放图片(生成高质量图片）
 + (UIImage *)scaleImage:(CIImage *)image toSize:(CGSize)size {
     
     //! 将CIImage转成CGImageRef
@@ -185,6 +207,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     return scaledImage;
 }
 
+// 合成图片（code+logo）
 + (UIImage *)combinateCodeImage:(UIImage *)codeImage andLogo:(UIImage *)logo {
     
     UIGraphicsBeginImageContextWithOptions(codeImage.size, YES, [UIScreen mainScreen].scale);
@@ -253,8 +276,9 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     NSDictionary *exifDic = metadataDic[(__bridge NSString *)kCGImagePropertyExifDictionary];
     CGFloat brightness = [exifDic[(__bridge NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
     
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    BOOL torchOn = device.torchMode == AVCaptureTorchModeOn;
     BOOL dimmed = brightness < 1.0;
-    BOOL torchOn = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo].torchMode == AVCaptureTorchModeOn;
     static BOOL lastDimmed = NO;
     
     if (_lightStatus) {
@@ -268,6 +292,46 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
             lastDimmed = dimmed;
         }
     }
+}
+
+
+
+#pragma mark - 缩放手势
+
+- (void)pin:(UIPinchGestureRecognizer *)pinGesture {
+    
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    
+    CGFloat minZoomFactor = 1.0;
+    CGFloat maxZoomFactor = device.activeFormat.videoMaxZoomFactor;
+    
+    if (@available(iOS 11.0, *)) {
+        minZoomFactor = device.minAvailableVideoZoomFactor;
+        maxZoomFactor = device.maxAvailableVideoZoomFactor;
+    }
+    
+    static CGFloat lastZoomFactor = 1.0;
+    if (pinGesture.state == UIGestureRecognizerStateBegan) {
+        lastZoomFactor = device.videoZoomFactor;
+    }
+    else if (pinGesture.state == UIGestureRecognizerStateChanged) {
+        CGFloat zoomFactor = lastZoomFactor * pinGesture.scale;
+        zoomFactor = fmaxf(fminf(zoomFactor, maxZoomFactor), minZoomFactor);
+        [device lockForConfiguration:nil];
+        device.videoZoomFactor = zoomFactor;
+        [device unlockForConfiguration];
+    }
+}
+
+
+#pragma mark - Private functions
+
++ (void)resetZoomFactor {
+    
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    [device lockForConfiguration:nil];
+    device.videoZoomFactor = 1.0;
+    [device unlockForConfiguration];
 }
 
 @end

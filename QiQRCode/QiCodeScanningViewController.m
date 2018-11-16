@@ -8,13 +8,13 @@
 
 #import "QiCodeScanningViewController.h"
 #import "QiCodeGenerationViewController.h"
-#import "QiCodeScanningView.h"
+#import "QiCodePreviewView.h"
 #import "QiCodeManager.h"
 
-@interface QiCodeScanningViewController () <QiCodeScanningViewDelegate>
+@interface QiCodeScanningViewController () <QiCodePreviewViewDelegate>
 
-@property (nonatomic, strong) QiCodeScanningView *scanView;
-@property (nonatomic, strong) QiCodeManager *manager;
+@property (nonatomic, strong) QiCodePreviewView *previewView;
+@property (nonatomic, strong) QiCodeManager *codeManager;
 
 @end
 
@@ -24,22 +24,37 @@
     
     [super viewDidLoad];
     
-    _scanView = [[QiCodeScanningView alloc] initWithFrame:self.view.bounds rectColor:[UIColor blueColor]];
-    _scanView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    _scanView.delegate = self;
-    [self.view addSubview:_scanView];
-    
-    _manager = [[QiCodeManager alloc] initWithPreviewView:_scanView rectFrame:_scanView.rectFrame];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
+    
+    _previewView = [[QiCodePreviewView alloc] initWithFrame:self.view.bounds rectColor:[UIColor blueColor]];
+    _previewView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _previewView.delegate = self;
+    [self.view addSubview:_previewView];
+    
+    [_previewView startRunningIndicator:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
     
-    [self startScanning];
+    if (_codeManager) {
+        [self startScanning];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    
+    [super viewDidAppear:animated];
+    
+    if (!_codeManager) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            self.codeManager = [[QiCodeManager alloc] initWithPreviewView:self.previewView];
+            [self.previewView startRunningIndicator:NO];
+            [self startScanning];
+        });
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -61,23 +76,23 @@
 
 - (void)startScanning {
     
-    [_scanView startScanningAnimation:YES];
+    [_previewView startScanningAnimation:YES];
     
     __weak typeof(self) weakSelf = self;
-    [_manager startScanningWithCallback:^(NSString * _Nonnull code) {
+    [_codeManager startScanningWithCallback:^(NSString * _Nonnull code) {
         [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
     } autoStop:YES];
     
-    [_manager observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
-        [weakSelf.scanView showTorchSwithButton:(dimmed || torchOn)];
-        [weakSelf.scanView startScanningAnimation:(!dimmed && !torchOn)];
+    [_codeManager observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
+        [weakSelf.previewView showTorchSwithButton:(dimmed || torchOn)];
+        [weakSelf.previewView startScanningAnimation:(!dimmed && !torchOn)];
     }];
 }
 
 - (void)stopScanning {
     
-    [_manager stopScanning];
-    [_scanView startScanningAnimation:NO];
+    [_codeManager stopScanning];
+    [_previewView startScanningAnimation:NO];
 }
 
 
@@ -94,14 +109,14 @@
 }
 
 
-#pragma mark - QiCodeScanningViewDelegate
+#pragma mark - QiCodePreviewViewDelegate
 
-- (void)codeScanningView:(QiCodeScanningView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton {
+- (void)codeScanningView:(QiCodePreviewView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton {
     
     switchButton.selected = !switchButton.selected;
     
     [QiCodeManager switchTorch:switchButton.selected];
-    _manager.lightStatusHasCalled = switchButton.selected;
+    _codeManager.lightStatusHasCalled = switchButton.selected;
 }
 
 

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "QiCodePreviewView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - 扫描二维码/条形码
 
 - (instancetype)initWithPreviewView:(UIView *)previewView rectFrame:(CGRect)rectFrame;
+- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView;
+
 - (void)startScanningWithCallback:(void(^)(NSString *))callback autoStop:(BOOL)autoStop;
 - (void)startScanningWithCallback:(void(^)(NSString *))callback;
 - (void)stopScanning;

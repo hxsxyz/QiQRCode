@@ -1,14 +1,14 @@
 //
-//  QiCodeScanningView.m
+//  QiCodePreviewView.m
 //  QiQRCode
 //
 //  Created by huangxianshuai on 2018/11/13.
 //  Copyright © 2018年 QiShare. All rights reserved.
 //
 
-#import "QiCodeScanningView.h"
+#import "QiCodePreviewView.h"
 
-@interface QiCodeScanningView ()
+@interface QiCodePreviewView ()
 
 @property (nonatomic, strong) CAShapeLayer *maskLayer;
 @property (nonatomic, strong) CAShapeLayer *rectLayer;
@@ -16,6 +16,7 @@
 @property (nonatomic, strong) CAShapeLayer *lineLayer;
 @property (nonatomic, strong) CABasicAnimation *lineAnimation;
 
+@property (nonatomic, strong) UIActivityIndicatorView *indicatorView;
 @property (nonatomic, strong) UIButton *torchSwithButton;
 @property (nonatomic, strong) UILabel *tipsLabel;
 
@@ -23,21 +24,21 @@
 
 @end
 
-@implementation QiCodeScanningView
+@implementation QiCodePreviewView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     
-    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:[UIColor clearColor]];
+    return [[QiCodePreviewView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:[UIColor clearColor]];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame rectColor:(UIColor *)rectColor {
     
-    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:rectColor];
+    return [[QiCodePreviewView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:rectColor];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame {
     
-    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:rectFrame rectColor:[UIColor clearColor]];
+    return [[QiCodePreviewView alloc] initWithFrame:frame rectFrame:rectFrame rectColor:[UIColor clearColor]];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame rectColor:(UIColor *)rectColor {
@@ -46,6 +47,7 @@
     
     if (self) {
         
+        self.backgroundColor = [UIColor blackColor];
         self.layer.masksToBounds = YES;
         
         if (CGRectEqualToRect(rectFrame, CGRectZero)) {
@@ -176,6 +178,12 @@
         [_tipsLabel sizeToFit];
         _tipsLabel.center = CGPointMake(CGRectGetMidX(rectFrame), CGRectGetMaxY(rectFrame) + CGRectGetMidY(_tipsLabel.bounds)+ 12.0);
         [self addSubview:_tipsLabel];
+        
+        // 等待指示view
+        _indicatorView = [[UIActivityIndicatorView alloc] initWithFrame:rectFrame];
+        _indicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhite;
+        _indicatorView.hidesWhenStopped = YES;
+        [self addSubview:_indicatorView];
     }
     
     return self;
@@ -220,6 +228,16 @@
         } completion:^(BOOL finished) {
             self.torchSwithButton.hidden = YES;
         }];
+    }
+}
+
+- (void)startRunningIndicator:(BOOL)start {
+    
+    if (start) {
+        [_indicatorView startAnimating];
+    }
+    else {
+        [_indicatorView stopAnimating];
     }
 }
 

@@ -16,7 +16,7 @@
 		06516AF7219A966F00F47CCF /* QiCodeScanningViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AF6219A966F00F47CCF /* QiCodeScanningViewController.m */; };
 		06516AFA219A967900F47CCF /* QiCodeGenerationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AF9219A967900F47CCF /* QiCodeGenerationViewController.m */; };
 		06516B00219A999C00F47CCF /* QiCodeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516AFF219A999C00F47CCF /* QiCodeManager.m */; };
-		06516B03219AAE0B00F47CCF /* QiCodeScanningView.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516B02219AAE0B00F47CCF /* QiCodeScanningView.m */; };
+		06516B03219AAE0B00F47CCF /* QiCodePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 06516B02219AAE0B00F47CCF /* QiCodePreviewView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,8 +36,8 @@
 		06516AF9219A967900F47CCF /* QiCodeGenerationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiCodeGenerationViewController.m; sourceTree = "<group>"; };
 		06516AFE219A999C00F47CCF /* QiCodeManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiCodeManager.h; sourceTree = "<group>"; };
 		06516AFF219A999C00F47CCF /* QiCodeManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiCodeManager.m; sourceTree = "<group>"; };
-		06516B01219AAE0B00F47CCF /* QiCodeScanningView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiCodeScanningView.h; sourceTree = "<group>"; };
-		06516B02219AAE0B00F47CCF /* QiCodeScanningView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiCodeScanningView.m; sourceTree = "<group>"; };
+		06516B01219AAE0B00F47CCF /* QiCodePreviewView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QiCodePreviewView.h; sourceTree = "<group>"; };
+		06516B02219AAE0B00F47CCF /* QiCodePreviewView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QiCodePreviewView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,8 +80,8 @@
 				06516AF9219A967900F47CCF /* QiCodeGenerationViewController.m */,
 				06516AFE219A999C00F47CCF /* QiCodeManager.h */,
 				06516AFF219A999C00F47CCF /* QiCodeManager.m */,
-				06516B01219AAE0B00F47CCF /* QiCodeScanningView.h */,
-				06516B02219AAE0B00F47CCF /* QiCodeScanningView.m */,
+				06516B01219AAE0B00F47CCF /* QiCodePreviewView.h */,
+				06516B02219AAE0B00F47CCF /* QiCodePreviewView.m */,
 				06516AE5219A6E4500F47CCF /* Main.storyboard */,
 				06516AE8219A6E4900F47CCF /* Assets.xcassets */,
 				06516AEA219A6E4900F47CCF /* LaunchScreen.storyboard */,
@@ -165,7 +165,7 @@
 				06516AEF219A6E4900F47CCF /* main.m in Sources */,
 				06516AE1219A6E4500F47CCF /* AppDelegate.m in Sources */,
 				06516B00219A999C00F47CCF /* QiCodeManager.m in Sources */,
-				06516B03219AAE0B00F47CCF /* QiCodeScanningView.m in Sources */,
+				06516B03219AAE0B00F47CCF /* QiCodePreviewView.m in Sources */,
 				06516AFA219A967900F47CCF /* QiCodeGenerationViewController.m in Sources */,
 				06516AF7219A966F00F47CCF /* QiCodeScanningViewController.m in Sources */,
 			);
