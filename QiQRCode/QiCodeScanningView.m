@@ -30,6 +30,11 @@
     return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:[UIColor clearColor]];
 }
 
+- (instancetype)initWithFrame:(CGRect)frame rectColor:(UIColor *)rectColor {
+    
+    return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:CGRectZero rectColor:rectColor];
+}
+
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame {
     
     return [[QiCodeScanningView alloc] initWithFrame:frame rectFrame:rectFrame rectColor:[UIColor clearColor]];
@@ -94,12 +99,16 @@
         [self.layer addSublayer:_cornerLayer];
         
         // 根据rectFrame画扫描线
-        CGRect lineFrame = (CGRect){rectFrame.origin.x + 2.0, rectFrame.origin.y, rectFrame.size.width - 2.0 * 2, 1.0};
+        CGRect lineFrame = (CGRect){rectFrame.origin.x + 5.0, rectFrame.origin.y, rectFrame.size.width - 5.0 * 2, 1.5};
         UIBezierPath *linePath = [UIBezierPath bezierPathWithOvalInRect:(CGRect){.0, .0, lineFrame.size.width, lineFrame.size.height}];
         _lineLayer = [CAShapeLayer layer];
         _lineLayer.frame = lineFrame;
         _lineLayer.path = linePath.CGPath;
         _lineLayer.fillColor = rectColor.CGColor;
+        _lineLayer.shadowColor = rectColor.CGColor;
+        _lineLayer.shadowRadius = 5.0;
+        _lineLayer.shadowOffset = CGSizeMake(.0, .0);
+        _lineLayer.shadowOpacity = 1.0;
         _lineLayer.hidden = YES;
         [self.layer addSublayer:_lineLayer];
         
