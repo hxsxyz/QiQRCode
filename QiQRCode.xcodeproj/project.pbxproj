@@ -70,6 +70,7 @@
 		06516ADE219A6E4500F47CCF /* QiQRCode */ = {
 			isa = PBXGroup;
 			children = (
+				067522EC21A3B9C5008BEA6A /* QiCodeReader */,
 				06516ADF219A6E4500F47CCF /* AppDelegate.h */,
 				06516AE0219A6E4500F47CCF /* AppDelegate.m */,
 				06516AE2219A6E4500F47CCF /* ViewController.h */,
@@ -78,10 +79,6 @@
 				06516AF6219A966F00F47CCF /* QiCodeScanningViewController.m */,
 				06516AF8219A967900F47CCF /* QiCodeGenerationViewController.h */,
 				06516AF9219A967900F47CCF /* QiCodeGenerationViewController.m */,
-				06516AFE219A999C00F47CCF /* QiCodeManager.h */,
-				06516AFF219A999C00F47CCF /* QiCodeManager.m */,
-				06516B01219AAE0B00F47CCF /* QiCodePreviewView.h */,
-				06516B02219AAE0B00F47CCF /* QiCodePreviewView.m */,
 				06516AE5219A6E4500F47CCF /* Main.storyboard */,
 				06516AE8219A6E4900F47CCF /* Assets.xcassets */,
 				06516AEA219A6E4900F47CCF /* LaunchScreen.storyboard */,
@@ -89,6 +86,17 @@
 				06516AEE219A6E4900F47CCF /* main.m */,
 			);
 			path = QiQRCode;
+			sourceTree = "<group>";
+		};
+		067522EC21A3B9C5008BEA6A /* QiCodeReader */ = {
+			isa = PBXGroup;
+			children = (
+				06516AFE219A999C00F47CCF /* QiCodeManager.h */,
+				06516AFF219A999C00F47CCF /* QiCodeManager.m */,
+				06516B01219AAE0B00F47CCF /* QiCodePreviewView.h */,
+				06516B02219AAE0B00F47CCF /* QiCodePreviewView.m */,
+			);
+			path = QiCodeReader;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
