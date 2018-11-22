@@ -26,9 +26,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithFrame:(CGRect)frame rectColor:(UIColor *)rectColor;
 - (instancetype)initWithFrame:(CGRect)frame rectFrame:(CGRect)rectFrame;
 
-- (void)startScanningAnimation:(BOOL)start;
-- (void)startRunningIndicator:(BOOL)start;
-- (void)showTorchSwithButton:(BOOL)show;
+- (void)startScanning;
+- (void)stopScanning;
+- (void)startIndicating;
+- (void)stopIndicating;
+- (void)showTorchSwitch;
+- (void)hideTorchSwitch;
 
 @end
 

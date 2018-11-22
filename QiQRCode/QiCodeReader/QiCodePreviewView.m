@@ -20,8 +20,6 @@
 @property (nonatomic, strong) UIButton *torchSwithButton;
 @property (nonatomic, strong) UILabel *tipsLabel;
 
-//@property (nonatomic, strong) UIColor *rectColor;
-
 @end
 
 @implementation QiCodePreviewView
@@ -170,8 +168,8 @@
         
         // 提示语label
         _tipsLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+        _tipsLabel.textColor = [[UIColor whiteColor] colorWithAlphaComponent:.6];
         _tipsLabel.textAlignment = NSTextAlignmentCenter;
-        _tipsLabel.textColor = [UIColor lightGrayColor];
         _tipsLabel.font = [UIFont systemFontOfSize:13.0];
         _tipsLabel.text = @"将二维码/条形码放入框内即可自动扫描";
         _tipsLabel.numberOfLines = 0;
@@ -202,42 +200,53 @@
     return _rectLayer.frame;
 }
 
-- (void)startScanningAnimation:(BOOL)start {
+- (void)startScanning {
     
-    _lineLayer.hidden = !start;
-    
-    if (start) {
-        [_lineLayer addAnimation:_lineAnimation forKey:@"lineAnimation"];
-    } else {
-        [_lineLayer removeAnimationForKey:@"lineAnimation"];
-    }
+    _lineLayer.hidden = NO;
+    [_lineLayer addAnimation:_lineAnimation forKey:@"lineAnimation"];
 }
 
-- (void)showTorchSwithButton:(BOOL)show {
+- (void)stopScanning {
     
-    if (show) {
-        _torchSwithButton.hidden = NO;
-        _torchSwithButton.alpha = .0;
-        [UIView animateWithDuration:.25 animations:^{
-            self.torchSwithButton.alpha = 1.0;
-        }];
-    }
-    else {
-        [UIView animateWithDuration:.25 animations:^{
-            self.torchSwithButton.alpha = .0;
-        } completion:^(BOOL finished) {
-            self.torchSwithButton.hidden = YES;
-        }];
-    }
+    _lineLayer.hidden = YES;
+    [_lineLayer removeAnimationForKey:@"lineAnimation"];
 }
 
-- (void)startRunningIndicator:(BOOL)start {
+- (void)startIndicating {
     
-    if (start) {
+    [_indicatorView stopAnimating];
+}
+
+- (void)stopIndicating {
+    
+    [_indicatorView stopAnimating];
+}
+
+- (void)showTorchSwitch {
+    
+    _torchSwithButton.hidden = NO;
+    _torchSwithButton.alpha = .0;
+    [UIView animateWithDuration:.25 animations:^{
+        self.torchSwithButton.alpha = 1.0;
+    }];
+}
+
+- (void)hideTorchSwitch {
+    
+    [UIView animateWithDuration:.1 animations:^{
+        self.torchSwithButton.alpha = .0;
+    } completion:^(BOOL finished) {
+        self.torchSwithButton.hidden = YES;
+    }];
+}
+
+
+#pragma mark - Private functions
+
+- (void)didAddSubview:(UIView *)subview {
+    
+    if (subview == _indicatorView) {
         [_indicatorView startAnimating];
-    }
-    else {
-        [_indicatorView stopAnimating];
     }
 }
 

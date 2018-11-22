@@ -15,12 +15,14 @@ static NSString *QiInputCorrectionLevelM = @"M";//!< M: 15%
 static NSString *QiInputCorrectionLevelQ = @"Q";//!< Q: 25%
 static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
-@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate>
+@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate, QiCodePreviewViewDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
+@property (nonatomic, strong) QiCodePreviewView *previewView;
 
-@property (nonatomic, copy) void(^lightStatus)(BOOL, BOOL);
+@property (nonatomic, copy) void(^lightObserver)(BOOL, BOOL);
 @property (nonatomic, copy) void(^callback)(NSString *);
+@property (nonatomic, assign) BOOL lightObserverHasCalled;
 @property (nonatomic, assign) BOOL autoStop;
 
 @end
@@ -31,14 +33,17 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 - (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView {
     
-    return [[QiCodeManager alloc] initWithPreviewView:previewView rectFrame:previewView.rectFrame];
-}
-
-- (instancetype)initWithPreviewView:(UIView *)previewView rectFrame:(CGRect)rectFrame {
-    
     self = [super init];
     
     if (self) {
+        
+        if ([previewView isKindOfClass:[QiCodePreviewView class]]) {
+            _previewView = (QiCodePreviewView *)previewView;
+            _previewView.delegate = self;
+        }
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
         
         AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
         AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
@@ -67,6 +72,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
         [previewView.layer insertSublayer:previewLayer atIndex:0];
         
+        CGRect rectFrame = previewView.rectFrame;
+        
         // 设置扫码区域
         if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
             CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
@@ -89,6 +96,9 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         // 缩放手势
         UIPinchGestureRecognizer *pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pin:)];
         [previewView addGestureRecognizer:pinGesture];
+        
+        // 停止previewView上转动的指示器
+        [_previewView stopIndicating];
     }
     
     return self;
@@ -97,6 +107,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 - (void)dealloc {
     
     NSLog(@"%s", __func__);
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 
@@ -112,18 +124,49 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     _callback = callback;
     _autoStop = autoStop;
     
+    [self startScanning];
+}
+
+- (void)startScanning {
+    
     if (!_session.isRunning) {
         [_session startRunning];
+        [_previewView startScanning];
     }
+    
+    __weak typeof(self) weakSelf = self;
+    [self observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
+        if (dimmed || torchOn) {
+            [weakSelf.previewView stopScanning];
+            [weakSelf.previewView showTorchSwitch];
+        } else {
+            [weakSelf.previewView startScanning];
+            [weakSelf.previewView hideTorchSwitch];
+        }
+    }];
 }
 
 - (void)stopScanning {
     
     if (_session.isRunning) {
         [_session stopRunning];
+        [_previewView startScanning];
     }
-    [QiCodeManager resetZoomFactor];
     [QiCodeManager switchTorch:NO];
+    [QiCodeManager resetZoomFactor];
+}
+
+
+#pragma mark - Notification functions
+
+- (void)applicationWillEnterForeground:(NSNotification *)notification {
+    
+    [self startScanning];
+}
+
+- (void)applicationDidEnterBackground:(NSNotification *)notification {
+    
+    [self stopScanning];
 }
 
 
@@ -141,6 +184,17 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
             _callback(code.stringValue);
         }
     }
+}
+
+
+#pragma mark - QiCodePreviewViewDelegate
+
+- (void)codeScanningView:(QiCodePreviewView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton {
+    
+    switchButton.selected = !switchButton.selected;
+    
+    [QiCodeManager switchTorch:switchButton.selected];
+    _lightObserverHasCalled = switchButton.selected;
 }
 
 
@@ -238,12 +292,11 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 }
 
 
-
 #pragma mark - 打开/关闭手电筒
 
-- (void)observeLightStatus:(void (^)(BOOL, BOOL))lightStatus {
+- (void)observeLightStatus:(void (^)(BOOL, BOOL))lightObserver {
     
-    _lightStatus = lightStatus;
+    _lightObserver = lightObserver;
     
     AVCaptureVideoDataOutput *lightOutput = [[AVCaptureVideoDataOutput alloc] init];
     [lightOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
@@ -281,14 +334,14 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     BOOL dimmed = brightness < 1.0;
     static BOOL lastDimmed = NO;
     
-    if (_lightStatus) {
-        if (!_lightStatusHasCalled) {
-            _lightStatus(dimmed, torchOn);
-            _lightStatusHasCalled = YES;
+    if (_lightObserver) {
+        if (!_lightObserverHasCalled) {
+            _lightObserver(dimmed, torchOn);
+            _lightObserverHasCalled = YES;
             lastDimmed = dimmed;
         }
         else if (dimmed != lastDimmed) {
-            _lightStatus(dimmed, torchOn);
+            _lightObserver(dimmed, torchOn);
             lastDimmed = dimmed;
         }
     }

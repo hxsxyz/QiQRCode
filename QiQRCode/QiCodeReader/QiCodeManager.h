@@ -15,7 +15,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - 扫描二维码/条形码
 
-- (instancetype)initWithPreviewView:(UIView *)previewView rectFrame:(CGRect)rectFrame;
 - (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView;
 
 - (void)startScanningWithCallback:(void(^)(NSString *))callback autoStop:(BOOL)autoStop;
@@ -28,14 +27,6 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIImage *)generateQRCode:(NSString *)code size:(CGSize)size;
 + (UIImage *)generateQRCode:(NSString *)code size:(CGSize)size logo:(UIImage *)logo;
 + (UIImage *)generateCode128:(NSString *)code size:(CGSize)size;
-
-
-#pragma mark - 光感/手电筒
-
-@property (nonatomic, assign) BOOL lightStatusHasCalled;
-
-- (void)observeLightStatus:(void(^)(BOOL, BOOL))lightStatus;
-+ (void)switchTorch:(BOOL)on;
 
 @end
 

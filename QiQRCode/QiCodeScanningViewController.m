@@ -11,7 +11,7 @@
 #import "QiCodePreviewView.h"
 #import "QiCodeManager.h"
 
-@interface QiCodeScanningViewController () <QiCodePreviewViewDelegate>
+@interface QiCodeScanningViewController ()
 
 @property (nonatomic, strong) QiCodePreviewView *previewView;
 @property (nonatomic, strong) QiCodeManager *codeManager;
@@ -24,15 +24,9 @@
     
     [super viewDidLoad];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
-    
-    _previewView = [[QiCodePreviewView alloc] initWithFrame:self.view.bounds rectColor:[UIColor blueColor]];
-    _previewView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    _previewView.delegate = self;
+    _previewView = [[QiCodePreviewView alloc] initWithFrame:self.view.bounds];
+    _previewView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:_previewView];
-    
-    [_previewView startRunningIndicator:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -51,7 +45,6 @@
     if (!_codeManager) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             self.codeManager = [[QiCodeManager alloc] initWithPreviewView:self.previewView];
-            [self.previewView startRunningIndicator:NO];
             [self startScanning];
         });
     }
@@ -61,14 +54,7 @@
     
     [super viewWillDisappear:animated];
     
-    [self stopScanning];
-}
-
-- (void)dealloc {
-    
-    NSLog(@"%s", __func__);
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [_codeManager stopScanning];
 }
 
 
@@ -76,47 +62,10 @@
 
 - (void)startScanning {
     
-    [_previewView startScanningAnimation:YES];
-    
     __weak typeof(self) weakSelf = self;
     [_codeManager startScanningWithCallback:^(NSString * _Nonnull code) {
         [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
     } autoStop:YES];
-    
-    [_codeManager observeLightStatus:^(BOOL dimmed, BOOL torchOn) {
-        [weakSelf.previewView showTorchSwithButton:(dimmed || torchOn)];
-        [weakSelf.previewView startScanningAnimation:(!dimmed && !torchOn)];
-    }];
-}
-
-- (void)stopScanning {
-    
-    [_codeManager stopScanning];
-    [_previewView startScanningAnimation:NO];
-}
-
-
-#pragma mark - Notification functions
-
-- (void)applicationDidEnterBackground:(NSNotification *)notification {
-    
-    [self stopScanning];
-}
-
-- (void)applicationWillEnterForeground:(NSNotification *)notification {
-    
-    [self startScanning];
-}
-
-
-#pragma mark - QiCodePreviewViewDelegate
-
-- (void)codeScanningView:(QiCodePreviewView *)scanningView didClickedTorchSwitch:(UIButton *)switchButton {
-    
-    switchButton.selected = !switchButton.selected;
-    
-    [QiCodeManager switchTorch:switchButton.selected];
-    _codeManager.lightStatusHasCalled = switchButton.selected;
 }
 
 
