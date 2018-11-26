@@ -31,7 +31,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 #pragma mark - 扫描二维码/条形码
 
-- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView {
+- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView completion:(nonnull void (^)(void))completion {
     
     self = [super init];
     
@@ -45,57 +45,67 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
         
-        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-        AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
-        
-        AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
-        [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
-        
-        _session = [[AVCaptureSession alloc] init];
-        _session.sessionPreset = AVCaptureSessionPresetHigh;
-        if ([_session canAddInput:deviceInput]) {
-            [_session addInput:deviceInput];
-        }
-        if ([_session canAddOutput:metadataOutput]) {
-            [_session addOutput:metadataOutput];
-            if ([metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeQRCode] &&
-                [metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code]) {
-                metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+        // 在全局队列开启新线程，异步初始化AVCaptureSession（比较耗时）
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+            AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
+            
+            AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
+            [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
+            
+            self.session = [[AVCaptureSession alloc] init];
+            self.session.sessionPreset = AVCaptureSessionPresetHigh;
+            if ([self.session canAddInput:deviceInput]) {
+                [self.session addInput:deviceInput];
             }
-        }
-        
-        AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
-        previewLayer.frame = previewView.layer.bounds;
-        previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-        [previewView.layer insertSublayer:previewLayer atIndex:0];
-        
-        CGRect rectFrame = _previewView.rectFrame;
-        
-        // 设置扫码区域
-        if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
-            CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
-            CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
-            CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
-            CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
-            metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
-        }
-        
-        // 可以在[session startRunning];之后用此语句设置扫码区域
-        // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
-        
-        // 设置设备附加属性
-        [device lockForConfiguration:nil];
-        if (device.isFocusPointOfInterestSupported && [device isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
-            device.focusMode = AVCaptureFocusModeContinuousAutoFocus;
-        }
-        [device unlockForConfiguration];
-        
-        // 缩放手势
-        UIPinchGestureRecognizer *pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pin:)];
-        [previewView addGestureRecognizer:pinGesture];
-        
-        // 停止previewView上转动的指示器
-        [_previewView stopIndicating];
+            if ([self.session canAddOutput:metadataOutput]) {
+                [self.session addOutput:metadataOutput];
+                if ([metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeQRCode] &&
+                    [metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code]) {
+                    metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+                }
+            }
+
+            [device lockForConfiguration:nil];
+            if (device.isFocusPointOfInterestSupported && [device isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+                device.focusMode = AVCaptureFocusModeContinuousAutoFocus;
+            }
+            [device unlockForConfiguration];
+            
+            // 回主线程更新UI
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:self.session];
+                previewLayer.frame = previewView.layer.bounds;
+                previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+                [previewView.layer insertSublayer:previewLayer atIndex:0];
+                
+                CGRect rectFrame = self.previewView.rectFrame;
+                // 设置扫码区域
+                if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
+                    CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
+                    CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
+                    CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
+                    CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
+                    metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
+                }
+                
+                // 可以在[session startRunning];之后用此语句设置扫码区域
+                // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
+                
+                // 缩放手势
+                UIPinchGestureRecognizer *pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pin:)];
+                [previewView addGestureRecognizer:pinGesture];
+                
+                // 停止previewView上转动的指示器
+                [self.previewView stopIndicating];
+                
+                if (completion) {
+                    completion();
+                }
+            });
+        });
     }
     
     return self;
@@ -126,7 +136,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 - (void)startScanning {
     
-    if (!_session.isRunning) {
+    if (_session && !_session.isRunning) {
         [_session startRunning];
         [_previewView startScanning];
     }
@@ -145,9 +155,9 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 - (void)stopScanning {
     
-    if (_session.isRunning) {
+    if (_session && _session.isRunning) {
         [_session stopRunning];
-        [_previewView startScanning];
+        [_previewView stopScanning];
     }
     [QiCodeManager switchTorch:NO];
     [QiCodeManager resetZoomFactor];

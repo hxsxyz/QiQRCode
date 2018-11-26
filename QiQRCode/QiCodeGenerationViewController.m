@@ -25,21 +25,40 @@
     _codeTextField.text = _code;
 }
 
+- (void)dealloc {
+    
+    NSLog(@"%s", __func__);
+}
+
 
 #pragma mark - Action functions
 
 - (IBAction)generateQRCode:(id)sender {
     
-    NSString *code = _codeTextField.text.length? _codeTextField.text: _codeTextField.placeholder;
-    UIImage *codeImage = [QiCodeManager generateQRCode:code size:_codeImageView.bounds.size];
-    _codeImageView.image = codeImage;
+    __block NSString *text = _codeTextField.text;
+    __block CGSize size = _codeImageView.bounds.size;
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *code = text.length? text: self.codeTextField.placeholder;
+        UIImage *codeImage = [QiCodeManager generateQRCode:code size:size];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.codeImageView.image = codeImage;
+        });
+    });
 }
 
 - (IBAction)generateCode128:(id)sender {
     
-    NSString *code = _codeTextField.text.length? _codeTextField.text: _codeTextField.placeholder;
-    UIImage *codeImage = [QiCodeManager generateCode128:code size:_codeImageView.bounds.size];
-    _codeImageView.image = codeImage;
+    __block NSString *text = _codeTextField.text;
+    __block CGSize size = _codeImageView.bounds.size;
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *code = text.length? text: self.codeTextField.placeholder;
+        UIImage *codeImage = [QiCodeManager generateCode128:code size:size];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.codeImageView.image = codeImage;
+        });
+    });
 }
 
 - (IBAction)codeImageViewTapped:(id)sender {

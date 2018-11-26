@@ -27,27 +27,18 @@
     _previewView = [[QiCodePreviewView alloc] initWithFrame:self.view.bounds];
     _previewView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:_previewView];
+    
+    __weak typeof(self) weakSelf = self;
+    _codeManager = [[QiCodeManager alloc] initWithPreviewView:_previewView completion:^{
+        [weakSelf startScanning];
+    }];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
     
-    if (_codeManager) {
-        [self startScanning];
-    }
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    
-    [super viewDidAppear:animated];
-    
-    if (!_codeManager) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            self.codeManager = [[QiCodeManager alloc] initWithPreviewView:self.previewView];
-            [self startScanning];
-        });
-    }
+    [self startScanning];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -55,6 +46,11 @@
     [super viewWillDisappear:animated];
     
     [_codeManager stopScanning];
+}
+
+- (void)dealloc {
+    
+    NSLog(@"%s", __func__);
 }
 
 

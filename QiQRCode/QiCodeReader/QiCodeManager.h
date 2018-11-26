@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - 扫描二维码/条形码
 
-- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView;
+- (instancetype)initWithPreviewView:(QiCodePreviewView *)previewView completion:(void(^)(void))completion;
 
 - (void)startScanningWithCallback:(void(^)(NSString *))callback autoStop:(BOOL)autoStop;
 - (void)startScanningWithCallback:(void(^)(NSString *))callback;
