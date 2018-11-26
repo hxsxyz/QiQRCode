@@ -75,7 +75,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
         [previewView.layer insertSublayer:previewLayer atIndex:0];
         
-        CGRect rectFrame = previewView.rectFrame;
+        CGRect rectFrame = _previewView.rectFrame;
         
         // 设置扫码区域
         if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
