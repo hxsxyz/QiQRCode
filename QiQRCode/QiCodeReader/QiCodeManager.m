@@ -51,9 +51,6 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
         [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
         
-        AVCaptureStillImageOutput *imageOutput = [[AVCaptureStillImageOutput alloc] init];
-        imageOutput.outputSettings = @{AVVideoCodecKey: AVVideoCodecJPEG};
-        
         _session = [[AVCaptureSession alloc] init];
         _session.sessionPreset = AVCaptureSessionPresetHigh;
         if ([_session canAddInput:deviceInput]) {
@@ -65,9 +62,6 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
                 [metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code]) {
                 metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
             }
-        }
-        if ([_session canAddOutput:imageOutput]) {
-            [_session addOutput:imageOutput];
         }
         
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
