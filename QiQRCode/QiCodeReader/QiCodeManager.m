@@ -81,8 +81,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
                 previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
                 [previewView.layer insertSublayer:previewLayer atIndex:0];
                 
-                CGRect rectFrame = self.previewView.rectFrame;
                 // 设置扫码区域
+                CGRect rectFrame = self.previewView.rectFrame;
                 if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
                     CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
                     CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
@@ -90,7 +90,6 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
                     CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
                     metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
                 }
-                
                 // 可以在[session startRunning];之后用此语句设置扫码区域
                 // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
                 
