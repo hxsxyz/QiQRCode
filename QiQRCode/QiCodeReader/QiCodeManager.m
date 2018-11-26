@@ -61,7 +61,10 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         }
         if ([_session canAddOutput:metadataOutput]) {
             [_session addOutput:metadataOutput];
-            metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+            if ([metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeQRCode] &&
+                [metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code]) {
+                metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+            }
         }
         if ([_session canAddOutput:imageOutput]) {
             [_session addOutput:imageOutput];
