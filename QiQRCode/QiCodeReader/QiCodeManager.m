@@ -49,21 +49,22 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             
             AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-            AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
+            AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
             
-            AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
-            [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
+            AVCaptureMetadataOutput *output = [[AVCaptureMetadataOutput alloc] init];
+            [output setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
             
             self.session = [[AVCaptureSession alloc] init];
             self.session.sessionPreset = AVCaptureSessionPresetHigh;
-            if ([self.session canAddInput:deviceInput]) {
-                [self.session addInput:deviceInput];
+            if ([self.session canAddInput:input]) {
+                [self.session addInput:input];
             }
-            if ([self.session canAddOutput:metadataOutput]) {
-                [self.session addOutput:metadataOutput];
-                if ([metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeQRCode] &&
-                    [metadataOutput.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code]) {
-                    metadataOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code];
+            if ([self.session canAddOutput:output]) {
+                [self.session addOutput:output];
+                if ([output.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeQRCode] &&
+                    [output.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeCode128Code] &&
+                    [output.availableMetadataObjectTypes containsObject:AVMetadataObjectTypeEAN13Code]) {
+                    output.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypeEAN13Code];
                 }
             }
 
@@ -84,11 +85,11 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
                 // 设置扫码区域
                 CGRect rectFrame = self.previewView.rectFrame;
                 if (!CGRectEqualToRect(rectFrame, CGRectZero)) {
-                    CGFloat x = rectFrame.origin.y / previewView.bounds.size.height;
-                    CGFloat y = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
-                    CGFloat w = rectFrame.size.height / previewView.bounds.size.height;
-                    CGFloat h = rectFrame.size.width / previewView.bounds.size.width;
-                    metadataOutput.rectOfInterest = CGRectMake(x, y, w, h);
+                    CGFloat y = rectFrame.origin.y / previewView.bounds.size.height;
+                    CGFloat x = (previewView.bounds.size.width - rectFrame.origin.x - rectFrame.size.width) / previewView.bounds.size.width;
+                    CGFloat h = rectFrame.size.height / previewView.bounds.size.height;
+                    CGFloat w = rectFrame.size.width / previewView.bounds.size.width;
+                    output.rectOfInterest = CGRectMake(y, x, h, w);
                 }
                 // 可以在[session startRunning];之后用此语句设置扫码区域
                 // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
