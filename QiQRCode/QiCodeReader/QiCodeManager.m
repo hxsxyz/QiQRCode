@@ -95,8 +95,8 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
                 // metadataOutput.rectOfInterest = [previewLayer metadataOutputRectOfInterestForRect:rectFrame];
                 
                 // 缩放手势
-                UIPinchGestureRecognizer *pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pin:)];
-                [previewView addGestureRecognizer:pinGesture];
+                UIPinchGestureRecognizer *pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinch:)];
+                [previewView addGestureRecognizer:pinchGesture];
                 
                 // 停止previewView上转动的指示器
                 [self.previewView stopIndicating];
@@ -358,7 +358,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
 #pragma mark - 缩放手势
 
-- (void)pin:(UIPinchGestureRecognizer *)pinGesture {
+- (void)pinch:(UIPinchGestureRecognizer *)gesture {
     
     AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     
@@ -371,11 +371,11 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     }
     
     static CGFloat lastZoomFactor = 1.0;
-    if (pinGesture.state == UIGestureRecognizerStateBegan) {
+    if (gesture.state == UIGestureRecognizerStateBegan) {
         lastZoomFactor = device.videoZoomFactor;
     }
-    else if (pinGesture.state == UIGestureRecognizerStateChanged) {
-        CGFloat zoomFactor = lastZoomFactor * pinGesture.scale;
+    else if (gesture.state == UIGestureRecognizerStateChanged) {
+        CGFloat zoomFactor = lastZoomFactor * gesture.scale;
         zoomFactor = fmaxf(fminf(zoomFactor, maxZoomFactor), minZoomFactor);
         [device lockForConfiguration:nil];
         device.videoZoomFactor = zoomFactor;
