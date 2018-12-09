@@ -183,6 +183,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     }
 }
 
+
 #pragma mark - Notification functions
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification {
