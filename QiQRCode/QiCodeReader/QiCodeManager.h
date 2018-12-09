@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)startScanningWithCallback:(void(^)(NSString *))callback;
 - (void)stopScanning;
 
+- (void)presentPhotoLibraryWithRooter:(UIViewController *)rooter callback:(void(^)(NSString *))callback;
+
 
 #pragma mark - 生成二维码/条形码
 

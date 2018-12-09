@@ -15,7 +15,7 @@ static NSString *QiInputCorrectionLevelM = @"M";//!< M: 15%
 static NSString *QiInputCorrectionLevelQ = @"Q";//!< Q: 25%
 static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
 
-@interface QiCodeManager () <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate, QiCodePreviewViewDelegate>
+@interface QiCodeManager () <AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureMetadataOutputObjectsDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIGestureRecognizerDelegate, QiCodePreviewViewDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) QiCodePreviewView *previewView;
@@ -163,6 +163,25 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     [QiCodeManager resetZoomFactor];
 }
 
+- (void)presentPhotoLibraryWithRooter:(UIViewController *)rooter callback:(nonnull void (^)(NSString * _Nonnull))callback {
+    _callback = callback;
+    
+    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+    imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    // imagePicker.allowsEditing = YES;
+    imagePicker.delegate = self;
+    [rooter presentViewController:imagePicker animated:YES completion:nil];
+}
+
+- (void)handleCodeString:(NSString *)codeString {
+    
+    if (_autoStop) {
+        [self stopScanning];
+    }
+    if (_callback) {
+        _callback(codeString);
+    }
+}
 
 #pragma mark - Notification functions
 
@@ -184,12 +203,7 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     AVMetadataMachineReadableCodeObject *code = metadataObjects.firstObject;
     
     if (code.stringValue) {
-        if (_autoStop) {
-            [self stopScanning];
-        }
-        if (_callback) {
-            _callback(code.stringValue);
-        }
+        [self handleCodeString:code.stringValue];
     }
 }
 
@@ -202,6 +216,24 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     
     [QiCodeManager switchTorch:switchButton.selected];
     _lightObserverHasCalled = switchButton.selected;
+}
+
+
+#pragma mark - UIImagePickerControllerDelegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
+    
+    UIImage *pickedImage = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
+    CIImage *detectImage = [CIImage imageWithData:UIImagePNGRepresentation(pickedImage)];
+    
+    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:nil options:@{CIDetectorAccuracy: CIDetectorAccuracyLow}];
+    CIQRCodeFeature *feature = (CIQRCodeFeature *)[detector featuresInImage:detectImage options:nil].firstObject;
+    
+    [picker dismissViewControllerAnimated:YES completion:^{
+        if (feature.messageString) {
+            [self handleCodeString:feature.messageString];
+        }
+    }];
 }
 
 

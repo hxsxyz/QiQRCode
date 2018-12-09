@@ -11,7 +11,7 @@
 #import "QiCodePreviewView.h"
 #import "QiCodeManager.h"
 
-@interface QiCodeScanningViewController ()
+@interface QiCodeScanningViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (nonatomic, strong) QiCodePreviewView *previewView;
 @property (nonatomic, strong) QiCodeManager *codeManager;
@@ -23,6 +23,9 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    
+    UIBarButtonItem *photoItem = [[UIBarButtonItem alloc] initWithTitle:@"相册" style:UIBarButtonItemStylePlain target:self action:@selector(photo:)];
+    self.navigationItem.rightBarButtonItem = photoItem;
     
     _previewView = [[QiCodePreviewView alloc] initWithFrame:self.view.bounds];
     _previewView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
@@ -51,6 +54,17 @@
 - (void)dealloc {
     
     NSLog(@"%s", __func__);
+}
+
+
+#pragma mark - Action functions
+
+- (void)photo:(id)sender {
+    
+    __weak typeof(self) weakSelf = self;
+    [_codeManager presentPhotoLibraryWithRooter:self callback:^(NSString * _Nonnull code) {
+        [weakSelf performSegueWithIdentifier:@"showCodeGeneration" sender:code];
+    }];
 }
 
 
