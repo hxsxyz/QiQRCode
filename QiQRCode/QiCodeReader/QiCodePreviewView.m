@@ -10,8 +10,6 @@
 
 @interface QiCodePreviewView ()
 
-@property (nonatomic, strong) CAShapeLayer *maskLayer;
-@property (nonatomic, strong) CAShapeLayer *rectLayer;
 @property (nonatomic, strong) CAShapeLayer *cornerLayer;
 @property (nonatomic, strong) CAShapeLayer *lineLayer;
 @property (nonatomic, strong) CABasicAnimation *lineAnimation;
@@ -22,7 +20,9 @@
 
 @end
 
-@implementation QiCodePreviewView
+@implementation QiCodePreviewView{
+    CGRect _rectFrame;
+}
 
 - (instancetype)initWithFrame:(CGRect)frame {
     
@@ -55,15 +55,19 @@
         if (CGColorEqualToColor(rectColor.CGColor, [UIColor clearColor].CGColor)) {
             rectColor = [UIColor whiteColor];
         }
-        // 根据自定义的rectFrame画矩形框（扫码框）
-        UIBezierPath *rectPath = [UIBezierPath bezierPathWithRect:(CGRect){.0, .0, rectFrame.size.width, rectFrame.size.height}];
-        _rectLayer = [CAShapeLayer layer];
-        _rectLayer.frame = rectFrame;
-        _rectLayer.path = rectPath.CGPath;
-        _rectLayer.lineWidth = .5;
-        _rectLayer.strokeColor = rectColor.CGColor;
-        _rectLayer.fillColor = [UIColor clearColor].CGColor;
-        [self.layer addSublayer:_rectLayer];
+        
+        _rectFrame = rectFrame;
+        // 遮罩
+        UIView *coverView = [[UIView alloc] init];
+        coverView.frame = self.bounds;
+        coverView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
+        [self addSubview:coverView];
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:coverView.bounds];
+        UIBezierPath *rectPath = [[UIBezierPath bezierPathWithRect:rectFrame] bezierPathByReversingPath];
+        [path appendPath:rectPath];
+        CAShapeLayer *shapeLayer = [CAShapeLayer layer];
+        shapeLayer.path = path.CGPath;
+        coverView.layer.mask = shapeLayer;
         
         // 根据rectFrame创建矩形拐角路径
         CGFloat cornerWidth = 2.0;
@@ -114,41 +118,11 @@
         
         // 扫描线动画
         _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
-        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _lineLayer.frame.size.height}];
-        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectLayer.frame.origin.y + _rectLayer.frame.size.height - _lineLayer.frame.size.height}];
+        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectFrame.origin.y + _lineLayer.frame.size.height}];
+        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectFrame.origin.y + _rectFrame.size.height - _lineLayer.frame.size.height}];
         _lineAnimation.repeatCount = CGFLOAT_MAX;
         _lineAnimation.autoreverses = YES;
         _lineAnimation.duration = 2.0;
-        
-        // 根据rectFrame求最大边距
-        CGFloat rectTop = rectFrame.origin.y;
-        CGFloat rectLeft = rectFrame.origin.x;
-        CGFloat rectRight = self.layer.bounds.size.width - rectFrame.size.width - rectLeft;
-        CGFloat rectBottom = self.layer.bounds.size.height - rectFrame.size.height - rectTop;
-        CGFloat rectMaxMargin = fmaxf(rectTop, fmaxf(rectLeft, fmaxf(rectRight, rectBottom)));
-        
-        // 根据最大边距求遮罩的frame
-        CGFloat maskTop = rectTop - rectMaxMargin;
-        CGFloat maskLeft = rectLeft - rectMaxMargin;
-        CGFloat maskRight = rectRight - rectMaxMargin;
-        CGFloat maskBottom = rectBottom - rectMaxMargin;
-        CGFloat maskWidth = self.layer.bounds.size.width + fabs(maskLeft) + fabs(maskRight);
-        CGFloat maskHeight = self.layer.bounds.size.height + fabs(maskTop) + fabs(maskBottom);
-        
-        // 根据遮罩的frame求贝塞尔曲线
-        CGFloat pathTop = maskTop + rectMaxMargin / 2;
-        CGFloat pathLeft = maskLeft + rectMaxMargin / 2;
-        CGFloat pathWidth = maskWidth - rectMaxMargin;
-        CGFloat pathHeight = maskHeight - rectMaxMargin;
-        UIBezierPath *maskPath = [UIBezierPath bezierPathWithRect:(CGRect){pathLeft, pathTop, pathWidth, pathHeight}];
-        
-        // 根据贝塞尔曲线画图
-        _maskLayer = [CAShapeLayer layer];
-        _maskLayer.path = maskPath.CGPath;
-        _maskLayer.lineWidth = rectMaxMargin;
-        _maskLayer.strokeColor = [[UIColor blackColor] colorWithAlphaComponent:.5].CGColor;
-        _maskLayer.fillColor = [UIColor clearColor].CGColor;
-        [self.layer insertSublayer:_maskLayer atIndex:0];
         
         // 手电筒开关
         _torchSwithButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -197,7 +171,7 @@
 
 - (CGRect)rectFrame {
     
-    return _rectLayer.frame;
+    return _rectFrame;
 }
 
 - (void)startScanning {
