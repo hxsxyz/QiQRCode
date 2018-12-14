@@ -10,6 +10,7 @@
 
 @interface QiCodePreviewView ()
 
+@property (nonatomic, strong) CAShapeLayer *rectLayer;
 @property (nonatomic, strong) CAShapeLayer *cornerLayer;
 @property (nonatomic, strong) CAShapeLayer *lineLayer;
 @property (nonatomic, strong) CABasicAnimation *lineAnimation;
@@ -20,9 +21,7 @@
 
 @end
 
-@implementation QiCodePreviewView{
-    CGRect _rectFrame;
-}
+@implementation QiCodePreviewView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     
@@ -45,9 +44,6 @@
     
     if (self) {
         
-        self.backgroundColor = [UIColor blackColor];
-        self.layer.masksToBounds = YES;
-        
         if (CGRectEqualToRect(rectFrame, CGRectZero)) {
             CGFloat rectSide = fminf(self.layer.bounds.size.width, self.layer.bounds.size.height) * 2 / 3;
             rectFrame = CGRectMake((self.layer.bounds.size.width - rectSide) / 2, (self.layer.bounds.size.height - rectSide) / 2, rectSide, rectSide);
@@ -56,51 +52,62 @@
             rectColor = [UIColor whiteColor];
         }
         
-        _rectFrame = rectFrame;
-        // 遮罩
-        UIView *coverView = [[UIView alloc] init];
-        coverView.frame = self.bounds;
-        coverView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
-        [self addSubview:coverView];
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:coverView.bounds];
-        UIBezierPath *rectPath = [[UIBezierPath bezierPathWithRect:rectFrame] bezierPathByReversingPath];
-        [path appendPath:rectPath];
-        CAShapeLayer *shapeLayer = [CAShapeLayer layer];
-        shapeLayer.path = path.CGPath;
-        coverView.layer.mask = shapeLayer;
+        // 根据自定义的rectFrame画矩形框（扫码框）
+        [self.layer masksToBounds];
+        [self clipsToBounds];
+        
+        CGFloat lineWidth = .5;
+        UIBezierPath *rectPath = [UIBezierPath bezierPathWithRect:(CGRect){lineWidth / 2, lineWidth / 2, rectFrame.size.width - lineWidth, rectFrame.size.height - lineWidth}];
+        _rectLayer = [CAShapeLayer layer];
+        _rectLayer.fillColor = [UIColor clearColor].CGColor;
+        _rectLayer.strokeColor = rectColor.CGColor;
+        _rectLayer.path = rectPath.CGPath;
+        _rectLayer.lineWidth = lineWidth;
+        _rectLayer.frame = rectFrame;
+        [self.layer addSublayer:_rectLayer];
         
         // 根据rectFrame创建矩形拐角路径
         CGFloat cornerWidth = 2.0;
         CGFloat cornerLength = fminf(rectFrame.size.width, rectFrame.size.height) / 12;
         UIBezierPath *cornerPath = [UIBezierPath bezierPath];
         // 左上角
-        [cornerPath moveToPoint:(CGPoint){.0, cornerWidth / 2}];
-        [cornerPath addLineToPoint:(CGPoint){cornerLength, cornerWidth / 2}];
         [cornerPath moveToPoint:(CGPoint){cornerWidth / 2, .0}];
         [cornerPath addLineToPoint:(CGPoint){cornerWidth / 2, cornerLength}];
+        [cornerPath moveToPoint:(CGPoint){.0, cornerWidth / 2}];
+        [cornerPath addLineToPoint:(CGPoint){cornerLength, cornerWidth / 2}];
         // 右上角
         [cornerPath moveToPoint:(CGPoint){rectFrame.size.width, cornerWidth / 2}];
         [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerLength, cornerWidth / 2}];
         [cornerPath moveToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, .0}];
         [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, cornerLength}];
+        // 右下角
+        [cornerPath moveToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, rectFrame.size.height}];
+        [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, rectFrame.size.height - cornerLength}];
+        [cornerPath moveToPoint:(CGPoint){rectFrame.size.width, rectFrame.size.height - cornerWidth / 2}];
+        [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerLength, rectFrame.size.height - cornerWidth / 2}];
         // 左下角
         [cornerPath moveToPoint:(CGPoint){.0, rectFrame.size.height - cornerWidth / 2}];
         [cornerPath addLineToPoint:(CGPoint){cornerLength, rectFrame.size.height - cornerWidth / 2}];
         [cornerPath moveToPoint:(CGPoint){cornerWidth / 2, rectFrame.size.height}];
         [cornerPath addLineToPoint:(CGPoint){cornerWidth / 2, rectFrame.size.height - cornerLength}];
-        // 右下角
-        [cornerPath moveToPoint:(CGPoint){rectFrame.size.width, rectFrame.size.height - cornerWidth / 2}];
-        [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerLength, rectFrame.size.height - cornerWidth / 2}];
-        [cornerPath moveToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, rectFrame.size.height}];
-        [cornerPath addLineToPoint:(CGPoint){rectFrame.size.width - cornerWidth / 2, rectFrame.size.height - cornerLength}];
         
         // 根据矩形拐角路径画矩形拐角
         _cornerLayer = [CAShapeLayer layer];
         _cornerLayer.frame = rectFrame;
         _cornerLayer.path = cornerPath.CGPath;
-        _cornerLayer.lineWidth = cornerWidth;
+        _cornerLayer.lineWidth = cornerPath.lineWidth;
         _cornerLayer.strokeColor = rectColor.CGColor;
         [self.layer addSublayer:_cornerLayer];
+        
+        // 遮罩+镂空
+        self.layer.backgroundColor = [UIColor blackColor].CGColor;
+        UIBezierPath *maskPath = [UIBezierPath bezierPathWithRect:self.bounds];
+        UIBezierPath *subPath = [[UIBezierPath bezierPathWithRect:rectFrame] bezierPathByReversingPath];
+        [maskPath appendPath:subPath];
+        CAShapeLayer *maskLayer = [CAShapeLayer layer];
+        maskLayer.fillColor = [UIColor colorWithWhite:.0 alpha:.6].CGColor;
+        maskLayer.path = maskPath.CGPath;
+        [self.layer addSublayer:maskLayer];
         
         // 根据rectFrame画扫描线
         CGRect lineFrame = (CGRect){rectFrame.origin.x + 5.0, rectFrame.origin.y, rectFrame.size.width - 5.0 * 2, 1.5};
@@ -118,8 +125,8 @@
         
         // 扫描线动画
         _lineAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
-        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectFrame.origin.y + _lineLayer.frame.size.height}];
-        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, _rectFrame.origin.y + _rectFrame.size.height - _lineLayer.frame.size.height}];
+        _lineAnimation.fromValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, rectFrame.origin.y + _lineLayer.frame.size.height}];
+        _lineAnimation.toValue = [NSValue valueWithCGPoint:(CGPoint){_lineLayer.frame.origin.x + _lineLayer.frame.size.width / 2, rectFrame.origin.y + rectFrame.size.height - _lineLayer.frame.size.height}];
         _lineAnimation.repeatCount = CGFLOAT_MAX;
         _lineAnimation.autoreverses = YES;
         _lineAnimation.duration = 2.0;
@@ -171,7 +178,7 @@
 
 - (CGRect)rectFrame {
     
-    return _rectFrame;
+    return _rectLayer.frame;
 }
 
 - (void)startScanning {
