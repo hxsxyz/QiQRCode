@@ -284,19 +284,22 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     CGFloat sideScale = fminf(size.width / integralRect.size.width, size.width / integralRect.size.height) * [UIScreen mainScreen].scale;// 计算需要缩放的比例
     size_t contextRefWidth = ceilf(integralRect.size.width * sideScale);
     size_t contextRefHeight = ceilf(integralRect.size.height * sideScale);
-    CGContextRef contextRef = CGBitmapContextCreate(nil, contextRefWidth, contextRefHeight, 8, 0, CGColorSpaceCreateDeviceGray(), (CGBitmapInfo)kCGImageAlphaNone);// 灰度、不透明
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceGray();
+    CGContextRef contextRef = CGBitmapContextCreate(nil, contextRefWidth, contextRefHeight, 8, 0, colorSpaceRef, (CGBitmapInfo)kCGImageAlphaNone);// 灰度、不透明
+    CGColorSpaceRelease(colorSpaceRef);
+    
     CGContextSetInterpolationQuality(contextRef, kCGInterpolationNone);// 设置上下文无插值
     CGContextScaleCTM(contextRef, sideScale, sideScale);// 设置上下文缩放
     CGContextDrawImage(contextRef, integralRect, imageRef);// 在上下文中的integralRect中绘制imageRef
+    CGImageRelease(imageRef);
     
     //! 从上下文中获取CGImageRef
     CGImageRef scaledImageRef = CGBitmapContextCreateImage(contextRef);
-    
     CGContextRelease(contextRef);
-    CGImageRelease(imageRef);
     
     //! 将CGImageRefc转成UIImage
     UIImage *scaledImage = [UIImage imageWithCGImage:scaledImageRef scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
+    CGImageRelease(scaledImageRef);
     
     return scaledImage;
 }
@@ -365,8 +368,9 @@ static NSString *QiInputCorrectionLevelH = @"H";//!< H: 30%
     
     CFDictionaryRef metadataDicRef = CMCopyDictionaryOfAttachments(NULL, sampleBuffer, kCMAttachmentMode_ShouldPropagate);
     NSDictionary *metadataDic = (__bridge NSDictionary *)metadataDicRef;
-    CFRelease(metadataDicRef);
     NSDictionary *exifDic = metadataDic[(__bridge NSString *)kCGImagePropertyExifDictionary];
+    CFRelease(metadataDicRef);
+    
     CGFloat brightness = [exifDic[(__bridge NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
     
     AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
